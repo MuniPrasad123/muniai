@@ -1,0 +1,27 @@
+# Local secrets and overrides
+.env
+.env.*
+!.env.example
+
+# Private runtime data
+local-data/
+
+# IDE and operating-system files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+tmp/
+temp/
+
+# Future build outputs and dependency caches
+node_modules/
+dist/
+build/
+target/
+coverage/
+
