@@ -1,0 +1,1 @@
+package com.muniai.shared.exception; public class MessageTooLongException extends RuntimeException { private final int maximum; public MessageTooLongException(int maximum){this.maximum=maximum;} public int maximum(){return maximum;} }

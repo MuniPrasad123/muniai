@@ -1,0 +1,28 @@
+server:
+  address: 127.0.0.1
+  port: 8080
+
+spring:
+  application:
+    name: muniai-api
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+muniai:
+  chat:
+    max-message-length: ${MUNIAI_CHAT_MAX_MESSAGE_LENGTH:10000}
+  ollama:
+    base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
+    model: ${MUNIAI_CHAT_MODEL:llama3.2:3b}
+    timeout: ${OLLAMA_TIMEOUT_SECONDS:120}s
+
+logging:
+  pattern:
+    level: "%5p [correlationId:%X{correlationId:-none}]"

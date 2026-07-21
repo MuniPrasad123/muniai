@@ -1,0 +1,1 @@
+package com.muniai.shared.exception; public class MalformedProviderResponseException extends RuntimeException { public MalformedProviderResponseException(){super();} public MalformedProviderResponseException(Throwable cause){super(cause);} }
