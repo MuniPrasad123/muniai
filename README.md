@@ -4,11 +4,11 @@ MuniAI is a private, local-first personal AI assistant. The project is intention
 
 ## Current scope
 
-Phases 0 through 2 are verified. The repository includes a loopback-only Spring Boot API for one-shot chat with local Ollama. No frontend, persistence, retrieval, memory, agent, or connector capability is present yet.
+Phases 0 through 3 are verified. The repository includes a loopback-only Spring Boot API and an ephemeral React chat interface for local Ollama. No persistence, retrieval, memory, agent, or connector capability is present yet.
 
 ## Repository layout
 
-- `frontend/` — future React client
+- `frontend/muniai-web/` — React chat client with in-memory state only
 - `backend/muniai-api/` — Spring Boot API for local Ollama chat
 - `infrastructure/` — future local service and deployment configuration
 - `docs/architecture/` — system design and security boundaries
@@ -30,3 +30,5 @@ The script performs read-only availability and version checks. It does not insta
 ## Start here
 
 Read [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [SECURITY.md](SECURITY.md), and the architecture decision records before implementation. Phase boundaries are deliberate: later-phase services must not be introduced early.
+
+See [Chat request-to-response flow](docs/architecture/chat-request-response-flow.md) for current capabilities, limitations, and the complete browser-to-Ollama lifecycle.
