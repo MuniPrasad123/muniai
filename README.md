@@ -4,7 +4,7 @@ MuniAI is a private, local-first personal AI assistant. The project is intention
 
 ## Current scope
 
-Phases 0 through 3 are verified. Phase 4 adds PostgreSQL-backed conversation history and is ready for native database verification. The browser, API, database, and Ollama connections remain loopback-only. Conversation history is persistence, not long-term AI memory; retrieval, memory, agents, and connectors remain out of scope.
+Phases 0 through 4 are verified. Phase 5 adds constrained local document storage and native text extraction. The browser, API, database, Ollama, and original files remain local. Chunking, embeddings, Qdrant, RAG, OCR, memory, agents, and connectors remain out of scope.
 
 ## Repository layout
 
@@ -34,3 +34,5 @@ Read [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md), [SECURITY.md](SECURITY.md
 See [Chat request-to-response flow](docs/architecture/chat-request-response-flow.md) for current capabilities, limitations, and the complete browser-to-Ollama lifecycle.
 
 Phase 4 guides: [PostgreSQL setup](docs/setup/POSTGRESQL_SETUP.md), [architecture](docs/architecture/phase-04-conversation-history.md), and [conversation API](docs/api/CONVERSATION_API.md).
+
+Phase 5 guides: [document architecture](docs/architecture/phase-05-document-upload.md) and [document API](docs/api/DOCUMENT_API.md).

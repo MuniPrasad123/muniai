@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Conversation, conversationApi, StoredMessage } from './api/conversations'
+import DocumentManager from './DocumentManager'
 
 const MAX_MESSAGE_LENGTH = 10_000
 
@@ -11,6 +12,7 @@ export default function App() {
   const [isLoadingList, setIsLoadingList] = useState(true)
   const [isLoadingChat, setIsLoadingChat] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [view, setView] = useState<'chat' | 'documents'>('chat')
   const controller = useRef<AbortController | null>(null)
   const remaining = MAX_MESSAGE_LENGTH - draft.length
   const canSend = draft.trim().length > 0 && remaining >= 0 && !isSending
@@ -103,6 +105,9 @@ export default function App() {
     <aside className="sidebar" aria-label="Conversation history">
       <div className="sidebar-brand"><span className="brand-mark">M</span><strong>MuniAI</strong></div>
       <button className="new-chat" type="button" onClick={newChat}>+ New Chat</button>
+      <button className="document-nav" type="button" onClick={() => setView(view === 'chat' ? 'documents' : 'chat')}>
+        {view === 'chat' ? 'Documents' : 'Back to chat'}
+      </button>
       <div className="conversation-list">
         {isLoadingList ? <p className="sidebar-state">Loading conversations…</p> : conversations.length === 0
           ? <p className="sidebar-state">No saved conversations yet.</p>
@@ -116,6 +121,7 @@ export default function App() {
     </aside>
 
     <section className="main-panel">
+      {view === 'documents' ? <DocumentManager /> : <>
       <header className="topbar">
         <div className="mobile-brand">MuniAI</div>
         <div className="privacy"><span aria-hidden="true" /> Local · saved</div>
@@ -150,7 +156,7 @@ export default function App() {
           </form>
           <p className="disclaimer">Model output may be inaccurate. Conversation history is not long-term AI memory.</p>
         </div>
-      </section>
+      </section></>}
     </section>
   </main>
 }

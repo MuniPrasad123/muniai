@@ -9,3 +9,7 @@ spring:
       ddl-auto: validate
   flyway:
     enabled: true
+muniai:
+  documents:
+    upload-directory: ${java.io.tmpdir}/muniai-document-tests
+    max-file-size: 1KB

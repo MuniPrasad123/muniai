@@ -29,4 +29,4 @@ npm run dev
 
 Open `http://127.0.0.1:5173`. Stop both application processes with `Ctrl+C`.
 
-Messages exist only in React memory for the current tab. Refreshing, closing, or clearing the tab removes them. Phase 3 uses no cookies, `localStorage`, IndexedDB, or conversation database.
+Chat and document state is loaded from the backend. The frontend stores no durable private content in cookies, `localStorage`, or IndexedDB. Use the Documents control to open the separate upload and extraction view.

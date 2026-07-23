@@ -19,6 +19,10 @@ spring:
   flyway:
     enabled: true
     validate-migration-naming: true
+  servlet:
+    multipart:
+      max-file-size: ${MUNIAI_DOCUMENT_MAX_SIZE:10MB}
+      max-request-size: ${MUNIAI_DOCUMENT_MAX_REQUEST_SIZE:11MB}
 
 management:
   endpoints:
@@ -32,6 +36,9 @@ management:
 muniai:
   chat:
     max-message-length: ${MUNIAI_CHAT_MAX_MESSAGE_LENGTH:10000}
+  documents:
+    upload-directory: ${MUNIAI_DOCUMENT_UPLOAD_DIR:../../local-data/documents}
+    max-file-size: ${MUNIAI_DOCUMENT_MAX_SIZE:10MB}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
     model: ${MUNIAI_CHAT_MODEL:llama3.2:3b}
