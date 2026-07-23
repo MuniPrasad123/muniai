@@ -19,7 +19,7 @@ No. MuniAI can attempt general explanations, writing, brainstorming, and basic p
 | Input | One text message, maximum 10,000 characters by default |
 | Output | Text returned only after the complete answer is generated |
 | Performance | CPU-only inference measured near 4.8 tokens/second |
-| Timeout | Complete response must arrive within 120 seconds by default |
+| Timeout | Complete response must arrive within 300 seconds by default |
 
 The UI displays earlier messages, but that display is not conversational memory. For example, after asking about Docker, a follow-up saying “explain the second point” will not send the Docker question or its answer to the model.
 
@@ -145,7 +145,7 @@ The UI shows the safe error and correlation reference; stack traces are never re
 |---|---|---|
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` | Local model API |
 | `MUNIAI_CHAT_MODEL` | `llama3.2:3b` | Chat model |
-| `OLLAMA_TIMEOUT_SECONDS` | `120` | Complete-response deadline |
+| `OLLAMA_TIMEOUT_SECONDS` | `300` | Complete-response deadline |
 | `MUNIAI_CHAT_MAX_MESSAGE_LENGTH` | `10000` | Backend input limit |
 
 ## Privacy and security

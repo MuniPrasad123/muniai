@@ -15,7 +15,7 @@ The backend binds to `127.0.0.1:8080` and does not persist conversations.
 |---|---|
 | `OLLAMA_BASE_URL` | `http://127.0.0.1:11434` |
 | `MUNIAI_CHAT_MODEL` | `llama3.2:3b` |
-| `OLLAMA_TIMEOUT_SECONDS` | `120` |
+| `OLLAMA_TIMEOUT_SECONDS` | `300` |
 | `MUNIAI_CHAT_MAX_MESSAGE_LENGTH` | `10000` |
 
 ## Build and run

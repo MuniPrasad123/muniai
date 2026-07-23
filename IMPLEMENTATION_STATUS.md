@@ -8,7 +8,7 @@ Allowed statuses: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `VERIF
 | 1 | Local Ollama verification | VERIFIED | Ollama CLI 0.32.1 and local API passed; `llama3.2:3b` and `nomic-embed-text:latest` were detected; verifier result: 10 PASS, 0 FAIL. |
 | 2 | Spring Boot to Ollama integration | VERIFIED | Java 21 Maven package passed; 12/12 tests passed; health endpoints passed; real local `llama3.2:3b` request succeeded; backend stopped afterward. |
 | 3 | React chat interface | VERIFIED | Frontend audit passed with 0 known vulnerabilities; 4/4 component tests and production build passed; 12/12 backend regressions passed; real loopback proxy chat with `llama3.2:3b` succeeded; services stopped afterward. |
-| 4 | PostgreSQL conversation history | NOT_STARTED | — |
+| 4 | PostgreSQL conversation history | VERIFIED | 20/20 backend tests, 8/8 frontend tests, and production build passed. Native PostgreSQL 17 accepted loopback-only connections, Flyway V1 applied, and a live API-to-PostgreSQL-to-Ollama request persisted two messages and was cleaned up successfully. |
 | 5 | Secure document upload | NOT_STARTED | — |
 | 6 | Embeddings and Qdrant | NOT_STARTED | — |
 | 7 | Complete RAG chat | NOT_STARTED | — |
