@@ -5,6 +5,7 @@ type Props = { document: DocumentMetadata; documents: DocumentMetadata[]; onChan
 
 export default function DocumentIndexPanel({ document, onChanged, onError }: Props) {
   const [busy, setBusy] = useState(false)
+  const indexingStatus = document.indexingStatus ?? 'NOT_INDEXED'
   async function run(mode: 'index' | 'reindex' | 'remove') {
     if (mode === 'reindex' && !window.confirm(`Re-index “${document.originalFileName}”? Existing vectors will be replaced.`)) return
     if (mode === 'remove' && !window.confirm(`Remove the vector index for “${document.originalFileName}”? The upload remains.`)) return
@@ -18,11 +19,11 @@ export default function DocumentIndexPanel({ document, onChanged, onError }: Pro
     finally { setBusy(false) }
   }
   return <div className="index-details">
-    <span className={`status ${document.indexingStatus.toLowerCase()}`}>Index: {document.indexingStatus}</span>
+    <span className={`status ${indexingStatus.toLowerCase()}`}>Index: {indexingStatus}</span>
     {document.chunkCount > 0 && <span>{document.chunkCount} chunks · {document.embeddingModel}</span>}
-    {document.indexingStatus === 'NOT_INDEXED' && <button disabled={busy || document.extractionStatus !== 'COMPLETED'} onClick={() => run('index')}>Index</button>}
-    {document.indexingStatus === 'FAILED' && <button disabled={busy} onClick={() => run('reindex')}>Retry</button>}
-    {document.indexingStatus === 'COMPLETED' && <>
+    {indexingStatus === 'NOT_INDEXED' && <button disabled={busy || document.extractionStatus !== 'COMPLETED'} onClick={() => run('index')}>Index</button>}
+    {indexingStatus === 'FAILED' && <button disabled={busy} onClick={() => run('reindex')}>Retry</button>}
+    {indexingStatus === 'COMPLETED' && <>
       <button disabled={busy} onClick={() => run('reindex')}>Re-index</button>
       <button disabled={busy} onClick={() => run('remove')}>Remove index</button>
     </>}

@@ -32,6 +32,12 @@ describe('document management', () => {
     expect(await screen.findByText('notes.txt')).toBeInTheDocument()
     expect(screen.getByText('COMPLETED')).toBeInTheDocument()
   })
+  it('does not crash when a legacy backend omits indexing metadata', async () => {
+    const { indexingStatus: _indexingStatus, ...legacyDocument } = document
+    mockApi(() => json([legacyDocument]))
+    render(<DocumentManager />)
+    expect(await screen.findByText('Index: NOT_INDEXED')).toBeInTheDocument()
+  })
   it('shows upload API errors', async () => {
     mockApi(({ method }) => method === 'POST' ? new Response(JSON.stringify({message:'Rejected.',correlationId:'ref-5'}),{status:400}) : json([]))
     render(<DocumentManager />); await screen.findByText('No documents uploaded yet.')

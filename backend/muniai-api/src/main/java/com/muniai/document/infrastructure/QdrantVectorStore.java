@@ -31,10 +31,8 @@ public class QdrantVectorStore implements VectorStore {
                 throw new DocumentException("QDRANT_COLLECTION_MISMATCH",
                         "The Qdrant collection vector size or distance metric is incompatible.");
         }catch(HttpClientErrorException.NotFound missing){
-            Map<String,Object> body=Map.of("vectors",Map.of("size",properties.embedding().dimension(),
-                    "distance",properties.qdrant().distanceMetric().toUpperCase(Locale.ROOT)));
             request("QDRANT_COLLECTION_CREATE_FAILED",()->client.put().uri("/collections/{name}",collectionName())
-                    .body(body).retrieve().toBodilessEntity());
+                    .body(collectionConfiguration()).retrieve().toBodilessEntity());
         }catch(DocumentException exception){throw exception;}
         catch(RestClientException exception){throw unavailable(exception);}
     }
@@ -72,6 +70,18 @@ public class QdrantVectorStore implements VectorStore {
         }catch(RestClientException exception){throw unavailable(exception);}
     }
     public String collectionName(){return properties.qdrant().collectionName();}
+    Map<String,Object> collectionConfiguration(){
+        String configured=properties.qdrant().distanceMetric().toUpperCase(Locale.ROOT);
+        String distance=switch(configured){
+            case "COSINE" -> "Cosine";
+            case "DOT" -> "Dot";
+            case "EUCLID" -> "Euclid";
+            case "MANHATTAN" -> "Manhattan";
+            default -> throw new DocumentException("QDRANT_DISTANCE_METRIC_INVALID",
+                    "The configured Qdrant distance metric is unsupported.");
+        };
+        return Map.of("vectors",Map.of("size",properties.embedding().dimension(),"distance",distance));
+    }
     Map<String,Object> payload(VectorPoint p){
         Map<String,Object> value=new LinkedHashMap<>();
         value.put("documentId",p.documentId().toString());value.put("chunkId",p.chunkId().toString());
