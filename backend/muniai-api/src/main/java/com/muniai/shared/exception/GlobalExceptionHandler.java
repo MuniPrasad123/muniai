@@ -16,7 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException; import org.
  @ExceptionHandler(DocumentNotFoundException.class) ResponseEntity<ApiError> documentNotFound(DocumentNotFoundException e,HttpServletRequest r){return error(HttpStatus.NOT_FOUND,"DOCUMENT_NOT_FOUND","The document was not found.",r,List.of());}
  @ExceptionHandler(MaxUploadSizeExceededException.class) ResponseEntity<ApiError> multipartTooLarge(MaxUploadSizeExceededException e,HttpServletRequest r){return error(HttpStatus.PAYLOAD_TOO_LARGE,"DOCUMENT_TOO_LARGE","The document exceeds the configured maximum size.",r,List.of());}
  @ExceptionHandler(DocumentException.class) ResponseEntity<ApiError> document(DocumentException e,HttpServletRequest r){
-  HttpStatus status=switch(e.code()){case "DOCUMENT_TEXT_UNAVAILABLE"->HttpStatus.CONFLICT; case "DOCUMENT_STORAGE_FAILED","DOCUMENT_DELETE_FAILED"->HttpStatus.INTERNAL_SERVER_ERROR; case "DOCUMENT_TOO_LARGE"->HttpStatus.PAYLOAD_TOO_LARGE; default->HttpStatus.BAD_REQUEST;};
+  HttpStatus status=switch(e.code()){case "DOCUMENT_TEXT_UNAVAILABLE"->HttpStatus.CONFLICT; case "DOCUMENT_STORAGE_FAILED","DOCUMENT_DELETE_FAILED"->HttpStatus.INTERNAL_SERVER_ERROR; case "DOCUMENT_TOO_LARGE"->HttpStatus.PAYLOAD_TOO_LARGE; case "EMBEDDING_PROVIDER_UNAVAILABLE","QDRANT_UNAVAILABLE","QDRANT_UPSERT_FAILED","QDRANT_DELETE_FAILED","QDRANT_COLLECTION_CREATE_FAILED"->HttpStatus.SERVICE_UNAVAILABLE; default->HttpStatus.BAD_REQUEST;};
   if(status.is5xxServerError()) LOGGER.error("Document operation failed: {}",e.code(),e);
   return error(status,e.code(),e.getMessage(),r,List.of());
  }

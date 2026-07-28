@@ -1,6 +1,7 @@
 package com.muniai.document.api;
 
 import com.muniai.document.application.DocumentApplicationService;
+import com.muniai.document.application.DocumentIndexingService;
 import com.muniai.document.infrastructure.DocumentEntity;
 import java.net.URI;
 import java.util.List;
@@ -13,7 +14,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/v1/documents")
 public class DocumentController {
     private final DocumentApplicationService service;
-    public DocumentController(DocumentApplicationService service) { this.service=service; }
+    private final DocumentIndexingService indexing;
+    public DocumentController(DocumentApplicationService service,DocumentIndexingService indexing) { this.service=service;this.indexing=indexing; }
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<DocumentDtos.DocumentResponse> upload(@RequestPart("file") MultipartFile file) {
@@ -28,9 +30,21 @@ public class DocumentController {
     @DeleteMapping("/{id}") public ResponseEntity<Void> delete(@PathVariable UUID id) {
         service.delete(id); return ResponseEntity.noContent().build();
     }
+    @PostMapping("/{id}/index") public DocumentDtos.DocumentResponse index(@PathVariable UUID id){return map(indexing.index(id));}
+    @PostMapping("/{id}/reindex") public DocumentDtos.DocumentResponse reindex(@PathVariable UUID id){return map(indexing.reindex(id));}
+    @GetMapping("/{id}/index-status") public DocumentDtos.IndexStatusResponse indexStatus(@PathVariable UUID id){
+        DocumentEntity value=indexing.status(id);return new DocumentDtos.IndexStatusResponse(value.getId(),value.getIndexingStatus(),
+                value.getIndexingStartedAt(),value.getIndexingCompletedAt(),value.getIndexingError(),value.getChunkCount(),
+                value.getEmbeddingModel(),value.getEmbeddingDimension(),value.getQdrantCollectionName());
+    }
+    @DeleteMapping("/{id}/index") public ResponseEntity<Void> removeIndex(@PathVariable UUID id){
+        indexing.removeIndex(id);return ResponseEntity.noContent().build();
+    }
     private DocumentDtos.DocumentResponse map(DocumentEntity value) {
         return new DocumentDtos.DocumentResponse(value.getId(), value.getOriginalFileName(), value.getContentType(),
                 value.getFileSize(), value.getExtractionStatus(), value.getExtractionError(), value.getPageCount(),
-                service.fileAvailable(value), value.getCreatedAt(), value.getUpdatedAt());
+                service.fileAvailable(value),value.getIndexingStatus(),value.getIndexingStartedAt(),
+                value.getIndexingCompletedAt(),value.getIndexingError(),value.getChunkCount(),value.getEmbeddingModel(),
+                value.getEmbeddingDimension(),value.getQdrantCollectionName(),value.getCreatedAt(), value.getUpdatedAt());
     }
 }

@@ -6,6 +6,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.muniai.bootstrap.MuniAiApplication;
 import com.muniai.document.infrastructure.DocumentRepository;
+import com.muniai.document.infrastructure.DocumentChunkRepository;
+import com.muniai.document.application.EmbeddingProvider;
+import com.muniai.document.application.VectorStore;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.*;
 import org.apache.pdfbox.pdmodel.*;
@@ -19,6 +22,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.*;
 
 @SpringBootTest(classes = MuniAiApplication.class)
 @AutoConfigureMockMvc
@@ -26,15 +32,64 @@ import org.springframework.test.web.servlet.MockMvc;
 class DocumentApiIntegrationTest {
     @Autowired MockMvc mvc;
     @Autowired DocumentRepository documents;
+    @Autowired DocumentChunkRepository chunks;
     @Autowired ObjectMapper mapper;
+    @MockBean EmbeddingProvider embeddings;
+    @MockBean VectorStore vectors;
     private final Path root = Path.of(System.getProperty("java.io.tmpdir"), "muniai-document-tests");
 
     @BeforeEach void clean() throws Exception {
         documents.deleteAllInBatch();
+        reset(embeddings,vectors);
+        when(embeddings.model()).thenReturn("test-embed");
+        when(embeddings.dimension()).thenReturn(3);
+        when(embeddings.embed(anyString())).thenReturn(new float[]{1,0,0});
+        when(vectors.collectionName()).thenReturn("test_chunks");
         Files.createDirectories(root);
         try (var paths = Files.list(root)) {
             for (Path path : paths.toList()) Files.deleteIfExists(path);
         }
+    }
+
+    @Test void indexesReindexesWithoutDuplicateChunksAndRemovesIndex() throws Exception {
+        String body=mvc.perform(multipart("/api/v1/documents")
+                .file(new MockMultipartFile("file","index.txt","text/plain","one short extracted document".getBytes())))
+                .andReturn().getResponse().getContentAsString();
+        String id=mapper.readTree(body).get("id").asText();
+        when(vectors.countByDocument(java.util.UUID.fromString(id))).thenReturn(1L);
+        mvc.perform(post("/api/v1/documents/{id}/index",id)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.indexingStatus").value("COMPLETED")).andExpect(jsonPath("$.chunkCount").value(1));
+        Assertions.assertEquals(1,chunks.countByDocumentId(java.util.UUID.fromString(id)));
+        mvc.perform(post("/api/v1/documents/{id}/reindex",id)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.chunkCount").value(1));
+        Assertions.assertEquals(1,chunks.countByDocumentId(java.util.UUID.fromString(id)));
+        mvc.perform(delete("/api/v1/documents/{id}/index",id)).andExpect(status().isNoContent());
+        Assertions.assertEquals(0,chunks.countByDocumentId(java.util.UUID.fromString(id)));
+        verify(vectors,atLeast(3)).deleteByDocument(java.util.UUID.fromString(id));
+    }
+
+    @Test void embeddingFailureMarksIndexFailedAndCleansChunks() throws Exception {
+        String body=mvc.perform(multipart("/api/v1/documents")
+                .file(new MockMultipartFile("file","failure.txt","text/plain","extracted content".getBytes())))
+                .andReturn().getResponse().getContentAsString();
+        String id=mapper.readTree(body).get("id").asText();
+        when(embeddings.embed(anyString())).thenThrow(new com.muniai.shared.exception.DocumentException(
+                "EMBEDDING_PROVIDER_UNAVAILABLE","The local embedding model is unavailable."));
+        mvc.perform(post("/api/v1/documents/{id}/index",id)).andExpect(status().isServiceUnavailable());
+        mvc.perform(get("/api/v1/documents/{id}/index-status",id)).andExpect(jsonPath("$.indexingStatus").value("FAILED"));
+        Assertions.assertEquals(0,chunks.countByDocumentId(java.util.UUID.fromString(id)));
+    }
+
+    @Test void deletingIndexedDocumentRemovesVectorsAndChunks() throws Exception {
+        String body=mvc.perform(multipart("/api/v1/documents")
+                .file(new MockMultipartFile("file","delete-indexed.txt","text/plain","indexed synthetic content".getBytes())))
+                .andReturn().getResponse().getContentAsString();
+        var id=java.util.UUID.fromString(mapper.readTree(body).get("id").asText());
+        when(vectors.countByDocument(id)).thenReturn(1L);
+        mvc.perform(post("/api/v1/documents/{id}/index",id)).andExpect(status().isOk());
+        mvc.perform(delete("/api/v1/documents/{id}",id)).andExpect(status().isNoContent());
+        Assertions.assertEquals(0,chunks.countByDocumentId(id));Assertions.assertFalse(documents.existsById(id));
+        verify(vectors,atLeast(2)).deleteByDocument(id);
     }
 
     @Test void uploadsListsFetchesReadsAndDeletesUtf8Text() throws Exception {

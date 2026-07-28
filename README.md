@@ -36,3 +36,5 @@ See [Chat request-to-response flow](docs/architecture/chat-request-response-flow
 Phase 4 guides: [PostgreSQL setup](docs/setup/POSTGRESQL_SETUP.md), [architecture](docs/architecture/phase-04-conversation-history.md), and [conversation API](docs/api/CONVERSATION_API.md).
 
 Phase 5 guides: [document architecture](docs/architecture/phase-05-document-upload.md) and [document API](docs/api/DOCUMENT_API.md).
+
+Phase 6 guides: [indexing and vector architecture](docs/architecture/phase-06-indexing-and-vectors.md), [Qdrant setup](docs/setup/QDRANT_SETUP.md), and [indexing API](docs/api/DOCUMENT_INDEXING_API.md). Phase 6 creates searchable vectors but does not connect documents to chat.

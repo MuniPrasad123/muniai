@@ -39,6 +39,24 @@ muniai:
   documents:
     upload-directory: ${MUNIAI_DOCUMENT_UPLOAD_DIR:../../local-data/documents}
     max-file-size: ${MUNIAI_DOCUMENT_MAX_SIZE:10MB}
+  indexing:
+    chunk-size: ${DOCUMENT_CHUNK_SIZE:1000}
+    chunk-overlap: ${DOCUMENT_CHUNK_OVERLAP:150}
+    batch-size: ${DOCUMENT_INDEX_BATCH_SIZE:8}
+    embedding:
+      base-url: ${OLLAMA_EMBEDDING_BASE_URL:http://127.0.0.1:11434}
+      model: ${OLLAMA_EMBEDDING_MODEL:nomic-embed-text:latest}
+      timeout: ${OLLAMA_EMBEDDING_TIMEOUT:120s}
+      dimension: ${OLLAMA_EMBEDDING_DIMENSION:768}
+    qdrant:
+      host: ${QDRANT_HOST:127.0.0.1}
+      http-port: ${QDRANT_HTTP_PORT:6333}
+      grpc-port: ${QDRANT_GRPC_PORT:6334}
+      api-key: ${QDRANT_API_KEY:}
+      https-enabled: ${QDRANT_HTTPS_ENABLED:false}
+      collection-name: ${QDRANT_COLLECTION_NAME:muniai_document_chunks}
+      distance-metric: ${QDRANT_DISTANCE_METRIC:COSINE}
+      timeout: ${QDRANT_REQUEST_TIMEOUT:30s}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://127.0.0.1:11434}
     model: ${MUNIAI_CHAT_MODEL:llama3.2:3b}

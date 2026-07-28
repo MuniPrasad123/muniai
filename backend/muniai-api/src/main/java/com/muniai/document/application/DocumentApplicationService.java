@@ -17,10 +17,11 @@ public class DocumentApplicationService {
     private final DocumentRepository repository;
     private final DocumentExtractor extractor;
     private final DocumentConfigurationProperties properties;
+    private final DocumentIndexingService indexing;
 
     public DocumentApplicationService(DocumentRepository repository, DocumentExtractor extractor,
-                                      DocumentConfigurationProperties properties) {
-        this.repository=repository; this.extractor=extractor; this.properties=properties;
+                                      DocumentConfigurationProperties properties,DocumentIndexingService indexing) {
+        this.repository=repository; this.extractor=extractor; this.properties=properties;this.indexing=indexing;
     }
 
     public DocumentEntity upload(MultipartFile file) {
@@ -74,6 +75,7 @@ public class DocumentApplicationService {
     }
     public void delete(UUID id) {
         DocumentEntity document = get(id);
+        indexing.cleanupBeforeDocumentDelete(document);
         Path path = contained(storageRoot(), document.getStoragePath());
         try {
             Files.deleteIfExists(path);

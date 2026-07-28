@@ -13,3 +13,21 @@ muniai:
   documents:
     upload-directory: ${java.io.tmpdir}/muniai-document-tests
     max-file-size: 1KB
+  indexing:
+    chunk-size: 80
+    chunk-overlap: 20
+    batch-size: 2
+    embedding:
+      base-url: http://127.0.0.1:11434
+      model: test-embed
+      timeout: 1s
+      dimension: 3
+    qdrant:
+      host: 127.0.0.1
+      http-port: 6333
+      grpc-port: 6334
+      api-key: ""
+      https-enabled: false
+      collection-name: test_chunks
+      distance-metric: COSINE
+      timeout: 1s

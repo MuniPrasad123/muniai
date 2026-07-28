@@ -6,6 +6,8 @@ import DocumentManager from './DocumentManager'
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 const document = { id:'d1', originalFileName:'notes.txt', contentType:'text/plain', fileSize:12,
   extractionStatus:'COMPLETED', extractionError:null, pageCount:null, fileAvailable:true,
+  indexingStatus:'NOT_INDEXED', indexingStartedAt:null, indexingCompletedAt:null, indexingError:null,
+  chunkCount:0, embeddingModel:null, embeddingDimension:null, qdrantCollectionName:null,
   createdAt:'2026-07-23T08:00:00Z', updatedAt:'2026-07-23T08:00:00Z' }
 
 describe('document management', () => {
@@ -48,6 +50,24 @@ describe('document management', () => {
     render(<DocumentManager />); await screen.findByText('notes.txt')
     await userEvent.click(screen.getByRole('button',{name:'Delete'}))
     await waitFor(() => expect(fetchMock.mock.calls.some(([,init]) => init?.method === 'DELETE')).toBe(true))
+  })
+  it('indexes and renders chunk metadata', async () => {
+    let indexed=false
+    mockApi(({method,path}) => method==='POST'&&path.endsWith('/index')
+      ? (indexed=true,json({...document,indexingStatus:'COMPLETED',chunkCount:2,embeddingModel:'test-embed'}))
+      : json([{...document,...(indexed?{indexingStatus:'COMPLETED',chunkCount:2,embeddingModel:'test-embed'}:{})}]))
+    render(<DocumentManager/>);await screen.findByText('notes.txt')
+    await userEvent.click(screen.getByRole('button',{name:'Index'}))
+    expect(await screen.findByText(/2 chunks/)).toBeInTheDocument()
+  })
+  it('confirms re-index and remove-index actions', async () => {
+    vi.spyOn(window,'confirm').mockReturnValue(false)
+    const indexed={...document,indexingStatus:'COMPLETED',chunkCount:2,embeddingModel:'test-embed'}
+    const fetchMock=mockApi(()=>json([indexed]))
+    render(<DocumentManager/>);await screen.findByText(/2 chunks/)
+    await userEvent.click(screen.getByRole('button',{name:'Re-index'}))
+    await userEvent.click(screen.getByRole('button',{name:'Remove index'}))
+    expect(fetchMock.mock.calls.filter(([,init])=>init?.method==='POST'||init?.method==='DELETE')).toHaveLength(0)
   })
 })
 function mockApi(handler:(request:{method:string,path:string})=>Response) {

@@ -1,5 +1,6 @@
 import { ChangeEvent, DragEvent, useCallback, useEffect, useState } from 'react'
 import { documentApi, DocumentMetadata } from './api/documents'
+import DocumentIndexPanel, { VectorSearchPanel } from './DocumentIndexPanel'
 
 const MAX_SIZE = 10 * 1024 * 1024
 const EXTENSIONS = ['.pdf', '.txt', '.md']
@@ -59,10 +60,13 @@ export default function DocumentManager() {
           <span className={`status ${document.extractionStatus.toLowerCase()}`}>{document.extractionStatus}</span>
           <button disabled={document.extractionStatus !== 'COMPLETED'} onClick={() => view(document)}>View text</button>
           <button className="danger" onClick={() => remove(document)}>Delete</button>
+          <DocumentIndexPanel document={document} documents={documents} onChanged={refresh} onError={setError} />
           {document.extractionError && <p className="extraction-error">{document.extractionError}</p>}
+          {document.indexingError && <p className="extraction-error">{document.indexingError}</p>}
           {!document.fileAvailable && <p className="extraction-error">The original stored file is missing.</p>}
         </article>)}
     </div>
+    <VectorSearchPanel documents={documents} onError={setError} />
     {text && <section className="text-view"><div><h2>{text.name}</h2><button onClick={() => setText(null)}>Close</button></div><pre>{text.value}</pre></section>}
   </section>
 }
