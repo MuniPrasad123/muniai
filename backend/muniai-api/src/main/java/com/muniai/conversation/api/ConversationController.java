@@ -38,9 +38,10 @@ public class ConversationController {
 
     @PostMapping("/{id}/messages")
     public SendMessageResponse send(@PathVariable UUID id, @Valid @RequestBody SendMessageRequest request) {
-        ConversationApplicationService.SendMessageResult result = service.send(id, request.message());
+        ConversationApplicationService.SendMessageResult result = service.send(id, request.message(),
+                request.effectiveMode(),request.selectedDocuments(),request.topK(),request.similarityThreshold());
         return new SendMessageResponse(result.conversationId(), map(result.userMessage()), map(result.assistantMessage()),
-                result.provider(), CorrelationId.current());
+                result.provider(), CorrelationId.current(), result.noRelevantContext());
     }
 
     @DeleteMapping("/{id}")
@@ -61,6 +62,10 @@ public class ConversationController {
     }
 
     private MessageResponse map(ConversationMessage value) {
-        return new MessageResponse(value.id(), value.conversationId(), value.role(), value.content(), value.model(), value.createdAt());
+        return new MessageResponse(value.id(), value.conversationId(), value.role(), value.content(), value.model(),
+                value.mode(),value.citations().stream().map(citation->new CitationResponse(citation.id(),
+                        citation.citationIndex(),citation.documentId(),citation.originalFileName(),citation.chunkId(),
+                        citation.chunkIndex(),citation.pageNumber(),citation.similarityScore(),citation.contentPreview())).toList(),
+                value.createdAt());
     }
 }

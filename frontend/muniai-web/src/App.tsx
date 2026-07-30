@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { Conversation, conversationApi, StoredMessage } from './api/conversations'
+import { ChatMode, Conversation, ConversationApiError, conversationApi, StoredMessage } from './api/conversations'
+import { documentApi, DocumentMetadata } from './api/documents'
 import DocumentManager from './DocumentManager'
 
 const MAX_MESSAGE_LENGTH = 10_000
@@ -13,6 +14,10 @@ export default function App() {
   const [isLoadingChat, setIsLoadingChat] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [view, setView] = useState<'chat' | 'documents'>('chat')
+  const [mode, setMode] = useState<ChatMode>('NORMAL')
+  const [indexedDocuments, setIndexedDocuments] = useState<DocumentMetadata[]>([])
+  const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
+  const [lastFailed, setLastFailed] = useState<{ content: string; mode: ChatMode; documentIds: string[] } | null>(null)
   const controller = useRef<AbortController | null>(null)
   const remaining = MAX_MESSAGE_LENGTH - draft.length
   const canSend = draft.trim().length > 0 && remaining >= 0 && !isSending
@@ -34,6 +39,10 @@ export default function App() {
     void refreshList().then((values) => values[0] && openConversation(values[0].id))
       .catch((caught) => setError(messageOf(caught))).finally(() => setIsLoadingList(false))
   }, [openConversation, refreshList])
+  useEffect(() => {
+    void documentApi.list().then((values) => setIndexedDocuments(values.filter((item) => item.indexingStatus === 'COMPLETED')))
+      .catch(() => setIndexedDocuments([]))
+  }, [view])
 
   async function newChat() {
     setError(''); setDraft('')
@@ -48,8 +57,13 @@ export default function App() {
     event.preventDefault()
     if (!canSend) return
     const content = draft.trim()
+    setDraft('')
+    await sendContent(content, mode, selectedDocumentIds)
+  }
+
+  async function sendContent(content: string, requestMode: ChatMode, documentIds: string[]) {
     let conversation = active
-    setError(''); setIsSending(true); setDraft('')
+    setError(''); setIsSending(true); setLastFailed(null)
     try {
       if (!conversation) {
         conversation = await conversationApi.create()
@@ -57,19 +71,27 @@ export default function App() {
       }
       const pending: StoredMessage = {
         id: crypto.randomUUID(), conversationId: conversation.id, role: 'USER', content, model: null,
-        createdAt: new Date().toISOString(),
+        mode: requestMode, citations: [], createdAt: new Date().toISOString(),
       }
       setActive({ ...conversation, messages: [...conversation.messages, pending] })
       controller.current = new AbortController()
-      const response = await conversationApi.send(conversation.id, content, controller.current.signal)
+      const response = await conversationApi.send(conversation.id, content, requestMode, documentIds, controller.current.signal)
       setActive((current) => current && current.id === response.conversationId
         ? { ...current, messages: [...current.messages.filter((item) => item.id !== pending.id), response.userMessage, response.assistantMessage] }
         : current)
       await refreshList()
     } catch (caught) {
-      setError(messageOf(caught))
-      if (conversation) await openConversation(conversation.id)
-      await refreshList().catch(() => undefined)
+      const failureMessage = messageOf(caught)
+      setLastFailed({ content, mode: requestMode, documentIds })
+      if (caught instanceof ConversationApiError && caught.code === 'CONVERSATION_NOT_FOUND') {
+        setActive(null)
+        const available = await refreshList().catch(() => [])
+        if (available[0]) await openConversation(available[0].id)
+      } else {
+        if (conversation) await openConversation(conversation.id)
+        await refreshList().catch(() => undefined)
+      }
+      setError(failureMessage)
     } finally { controller.current = null; setIsSending(false) }
   }
 
@@ -139,14 +161,39 @@ export default function App() {
               {active.messages.map((message) => <article className={`message ${message.role.toLowerCase()}`} key={message.id}>
                 <p className="message-label">{message.role === 'USER' ? 'You' : 'MuniAI'}</p>
                 <div>{message.content}</div>
-                {message.role === 'ASSISTANT' && <p className="message-detail">{message.model ?? 'local model'}</p>}
+                {message.role === 'ASSISTANT' && <>
+                  <p className="message-detail">{message.mode === 'DOCUMENT_RAG' ? 'Document-grounded' : 'Normal chat'} · {message.model ?? 'local model'}</p>
+                  {message.citations?.length > 0 && <details className="citations">
+                    <summary>Retrieved evidence ({message.citations.length})</summary>
+                    {message.citations.map((citation) => <article key={citation.citationId}>
+                      <strong>[{citation.citationIndex}] {citation.originalFileName}</strong>
+                      <span>Chunk {citation.chunkIndex + 1}{citation.pageNumber ? ` · page ${citation.pageNumber}` : ''}</span>
+                      <p>{citation.contentPreview}</p>
+                      <small>Similarity {citation.similarityScore.toFixed(4)}</small>
+                    </article>)}
+                  </details>}
+                </>}
               </article>)}
               {isSending && <div className="thinking" role="status"><span /><span /><span /> Thinking locally</div>}
             </div>}
 
         <div className="composer-wrap">
-          {error && <div className="error" role="alert">{error}</div>}
+          {error && <div className="error" role="alert">{error}
+            {lastFailed && <button type="button" onClick={() => sendContent(lastFailed.content, lastFailed.mode, lastFailed.documentIds)}>Retry</button>}
+          </div>}
           <form className="composer" onSubmit={submit}>
+            <div className="chat-mode" aria-label="Chat mode">
+              <button type="button" className={mode === 'NORMAL' ? 'active' : ''} onClick={() => setMode('NORMAL')}>Normal Chat</button>
+              <button type="button" className={mode === 'DOCUMENT_RAG' ? 'active' : ''} disabled={!indexedDocuments.length}
+                onClick={() => setMode('DOCUMENT_RAG')}>Ask Documents</button>
+              {mode === 'DOCUMENT_RAG' && <select multiple aria-label="Documents for chat" value={selectedDocumentIds}
+                onChange={(event) => setSelectedDocumentIds(Array.from(event.target.selectedOptions, (option) => option.value))}>
+                {indexedDocuments.map((document) => <option key={document.id} value={document.id}>{document.originalFileName}</option>)}
+              </select>}
+            </div>
+            {mode === 'DOCUMENT_RAG' && <p className="rag-notice">{selectedDocumentIds.length
+              ? `Using ${selectedDocumentIds.length} selected indexed document${selectedDocumentIds.length === 1 ? '' : 's'}.`
+              : 'Using all indexed documents.'} Responses include local source citations.</p>}
             <label className="sr-only" htmlFor="message">Message MuniAI</label>
             <textarea id="message" value={draft} onChange={(event) => setDraft(event.target.value)}
               onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }}

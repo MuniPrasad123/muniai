@@ -33,8 +33,23 @@ public class DocumentIndexingService {
     public List<VectorStore.SearchHit> search(String query,int limit,UUID documentId){
         if(query==null||query.isBlank()) throw new DocumentException("INVALID_VECTOR_SEARCH","A non-empty diagnostic query is required.");
         if(limit<1||limit>20) throw new DocumentException("INVALID_VECTOR_SEARCH","The result limit must be between 1 and 20.");
-        if(documentId!=null)get(documentId);
-        vectors.ensureCollection();return vectors.search(embeddings.embed(query.strip()),limit,documentId);
+        Set<UUID> ids=documentId==null?Set.of():Set.of(documentId);
+        validateIndexed(ids);
+        vectors.ensureCollection();return vectors.search(embeddings.embed(query.strip()),limit,ids);
+    }
+    public List<VectorStore.SearchHit> retrieve(String query,int limit,Set<UUID> documentIds){
+        if(query==null||query.isBlank()) throw new DocumentException("INVALID_RAG_REQUEST","A non-empty question is required.");
+        validateIndexed(documentIds);
+        if(documentIds.isEmpty()&&documents.findByIndexingStatus(IndexingStatus.COMPLETED).isEmpty()) return List.of();
+        vectors.ensureCollection();
+        return vectors.search(embeddings.embed(query.strip()),limit,documentIds);
+    }
+    private void validateIndexed(Set<UUID> documentIds){
+        for(UUID id:documentIds){
+            DocumentEntity document=get(id);
+            if(document.getIndexingStatus()!=IndexingStatus.COMPLETED)
+                throw new DocumentException("DOCUMENT_NOT_INDEXED","Only documents with completed indexing can be used for document chat.");
+        }
     }
     private DocumentEntity replaceIndex(UUID id){
         DocumentEntity document=get(id);

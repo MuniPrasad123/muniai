@@ -53,9 +53,9 @@ public class QdrantVectorStore implements VectorStore {
             return response==null?0:response.path("result").path("count").asLong();
         }catch(RestClientException exception){throw unavailable(exception);}
     }
-    public List<SearchHit> search(float[] vector,int limit,UUID documentId){
+    public List<SearchHit> search(float[] vector,int limit,Set<UUID> documentIds){
         Map<String,Object> body=new LinkedHashMap<>();body.put("vector",vector);body.put("limit",limit);body.put("with_payload",true);
-        if(documentId!=null) body.put("filter",filter(documentId));
+        if(documentIds!=null&&!documentIds.isEmpty()) body.put("filter",filter(documentIds));
         try{
             JsonNode response=client.post().uri("/collections/{name}/points/search",collectionName())
                     .body(body).retrieve().body(JsonNode.class);
@@ -92,6 +92,10 @@ public class QdrantVectorStore implements VectorStore {
         value.put("createdAt",p.createdAt().toString());return value;
     }
     private Map<String,Object> filter(UUID id){return Map.of("must",List.of(Map.of("key","documentId","match",Map.of("value",id.toString()))));}
+    Map<String,Object> filter(Set<UUID> ids){
+        List<String> values=ids.stream().map(UUID::toString).sorted().toList();
+        return Map.of("must",List.of(Map.of("key","documentId","match",Map.of("any",values))));
+    }
     private void request(String code,Runnable action){try{action.run();}catch(RestClientException exception){throw new DocumentException(code,"Qdrant could not complete the vector operation.",exception);}}
     private DocumentException unavailable(Exception cause){return new DocumentException("QDRANT_UNAVAILABLE","The local Qdrant vector database is unavailable.",cause);}
 }

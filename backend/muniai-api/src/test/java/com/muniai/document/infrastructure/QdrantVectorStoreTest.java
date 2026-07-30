@@ -6,10 +6,20 @@ import com.muniai.document.application.*;
 import java.net.URI;
 import java.time.*;
 import java.util.UUID;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
 
 class QdrantVectorStoreTest {
+    @Test void buildsMultiDocumentFilter(){
+        var embedding=new IndexingConfigurationProperties.Embedding(URI.create("http://localhost"),"embed",Duration.ofSeconds(1),3);
+        var qdrant=new IndexingConfigurationProperties.Qdrant("localhost",6333,6334,"",false,"chunks","COSINE",Duration.ofSeconds(1));
+        var store=new QdrantVectorStore(new IndexingConfigurationProperties(100,10,2,embedding,qdrant),RestClient.builder(),new ObjectMapper());
+        UUID one=UUID.fromString("00000000-0000-0000-0000-000000000001");
+        UUID two=UUID.fromString("00000000-0000-0000-0000-000000000002");
+        String json=new ObjectMapper().valueToTree(store.filter(Set.of(two,one))).toString();
+        assertTrue(json.contains("\"any\":[\""+one+"\",\""+two+"\"]"));
+    }
     @Test void mapsCollectionConfigurationToQdrantWireFormat() throws Exception {
         var embedding=new IndexingConfigurationProperties.Embedding(URI.create("http://localhost"),"embed",Duration.ofSeconds(1),768);
         var qdrant=new IndexingConfigurationProperties.Qdrant("localhost",6333,6334,"",false,"chunks","COSINE",Duration.ofSeconds(1));

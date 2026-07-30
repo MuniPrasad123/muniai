@@ -36,6 +36,16 @@ management:
 muniai:
   chat:
     max-message-length: ${MUNIAI_CHAT_MAX_MESSAGE_LENGTH:10000}
+  rag:
+    top-k: ${RAG_TOP_K:5}
+    maximum-top-k: ${RAG_MAX_TOP_K:10}
+    similarity-threshold: ${RAG_SIMILARITY_THRESHOLD:0.45}
+    max-context-chunks: ${RAG_MAX_CONTEXT_CHUNKS:5}
+    max-context-characters: ${RAG_MAX_CONTEXT_CHARACTERS:6000}
+    max-history-messages: ${RAG_MAX_HISTORY_MESSAGES:8}
+    chat-model: ${RAG_CHAT_MODEL:}
+    temperature: ${RAG_TEMPERATURE:0.1}
+    request-timeout: ${RAG_REQUEST_TIMEOUT:300s}
   documents:
     upload-directory: ${MUNIAI_DOCUMENT_UPLOAD_DIR:../../local-data/documents}
     max-file-size: ${MUNIAI_DOCUMENT_MAX_SIZE:10MB}

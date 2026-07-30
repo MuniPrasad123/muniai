@@ -75,13 +75,69 @@ describe('persistent conversation history', () => {
     render(<App />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Reference: ref-1')
   })
+
+  it('recovers from a deleted active conversation without retaining optimistic messages', async () => {
+    let listCalls = 0
+    mockApi(({ method, path }) => {
+      if (method === 'GET' && path === '/api/v1/conversations') {
+        listCalls++
+        return json(listCalls === 1 ? [summary] : [])
+      }
+      if (method === 'GET' && path === '/api/v1/conversations/c1') return json(detail)
+      if (method === 'POST' && path.endsWith('/messages')) {
+        return new Response(JSON.stringify({
+          code: 'CONVERSATION_NOT_FOUND',
+          message: 'The conversation was not found.',
+          correlationId: 'stale-ref',
+        }), { status: 404, headers: { 'Content-Type': 'application/json' } })
+      }
+      return json([])
+    })
+
+    render(<App />)
+    expect(await screen.findByText('Containers communicate over virtual networks.')).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Message MuniAI'), 'Will not be duplicated')
+    await userEvent.click(screen.getByRole('button', { name: 'Send message' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Reference: stale-ref')
+    expect(screen.queryByText('Will not be duplicated')).not.toBeInTheDocument()
+    expect(screen.getByText(/Start a chat/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeInTheDocument()
+  })
+
+  it('selects Ask Documents and renders grounded citation details', async () => {
+    const indexed = { id:'d1', originalFileName:'architecture.pdf', indexingStatus:'COMPLETED' }
+    mockApi(({ method, path }) => {
+      if (path === '/api/v1/documents') return json([indexed])
+      if (method === 'GET' && path === '/api/v1/conversations') return json([])
+      if (method === 'POST' && path === '/api/v1/conversations') return json(conversation('new','New conversation',[]))
+      return json({
+        conversationId:'new',
+        userMessage:{...message('u1','USER','How is traffic routed?',null,'new'),mode:'DOCUMENT_RAG'},
+        assistantMessage:{...message('a1','ASSISTANT','Through a load balancer. [Source 1]','llama3.2:3b','new'),
+          mode:'DOCUMENT_RAG',citations:[{citationId:'x1',citationIndex:1,documentId:'d1',originalFileName:'architecture.pdf',
+            chunkId:'k1',chunkIndex:7,pageNumber:null,similarityScore:0.82,contentPreview:'The load balancer forwards traffic.'}]},
+        provider:'ollama',correlationId:'ref',noRelevantContext:false,
+      })
+    })
+    render(<App />); await screen.findByText('No saved conversations yet.')
+    await waitFor(() => expect(screen.getByRole('button',{name:'Ask Documents'})).toBeEnabled())
+    await userEvent.click(screen.getByRole('button',{name:'Ask Documents'}))
+    expect(screen.getByText('Using all indexed documents. Responses include local source citations.')).toBeInTheDocument()
+    await userEvent.type(screen.getByLabelText('Message MuniAI'),'How is traffic routed?')
+    await userEvent.click(screen.getByRole('button',{name:'Send message'}))
+    expect(await screen.findByText('Through a load balancer. [Source 1]')).toBeInTheDocument()
+    await userEvent.click(screen.getByText('Retrieved evidence (1)'))
+    expect(screen.getByText('[1] architecture.pdf')).toBeInTheDocument()
+    expect(screen.getByText('Similarity 0.8200')).toBeInTheDocument()
+  })
 })
 
 function conversation(id: string, title: string, messages: ReturnType<typeof message>[]): Conversation {
   return { id, title, createdAt: '2026-07-22T08:00:00Z', updatedAt: '2026-07-22T08:00:00Z', messages }
 }
 function message(id: string, role: 'USER' | 'ASSISTANT' | 'SYSTEM', content: string, model: string | null = null, conversationId = 'c1') {
-  return { id, conversationId, role, content, model, createdAt: '2026-07-22T08:00:00Z' }
+  return { id, conversationId, role, content, model, mode: 'NORMAL' as const, citations: [], createdAt: '2026-07-22T08:00:00Z' }
 }
 function mockApi(handler: (request: { method: string; path: string }) => Response) {
   return vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => Promise.resolve(handler({ method: init?.method ?? 'GET', path: input.toString() })))

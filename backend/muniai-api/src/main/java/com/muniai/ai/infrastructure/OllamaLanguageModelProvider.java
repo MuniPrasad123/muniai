@@ -29,14 +29,15 @@ public class OllamaLanguageModelProvider implements LanguageModelProvider {
 
     @Override
     public ChatCompletion complete(ChatCompletionRequest request) {
-        String model = requiredModel();
+        String model = request.model() == null || request.model().isBlank() ? requiredModel() : request.model();
         try {
             OllamaChatResponse response = webClient.post()
                     .uri("/api/chat")
-                    .bodyValue(new OllamaChatRequest(model, List.of(new OllamaMessage("user", request.message())), false))
+                    .bodyValue(new OllamaChatRequest(model, List.of(new OllamaMessage("user", request.message())), false,
+                            request.temperature() == null ? null : new OllamaOptions(request.temperature())))
                     .retrieve()
                     .bodyToMono(OllamaChatResponse.class)
-                    .timeout(properties.timeout())
+                    .timeout(request.timeout() == null ? properties.timeout() : request.timeout())
                     .block();
             if (response == null || response.message() == null || response.message().content() == null
                     || response.message().content().isBlank()) {
@@ -93,7 +94,8 @@ public class OllamaLanguageModelProvider implements LanguageModelProvider {
         return false;
     }
 
-    record OllamaChatRequest(String model, List<OllamaMessage> messages, boolean stream) {}
+    record OllamaChatRequest(String model, List<OllamaMessage> messages, boolean stream, OllamaOptions options) {}
+    record OllamaOptions(double temperature) {}
     record OllamaMessage(String role, String content) {}
     record OllamaChatResponse(String model, OllamaMessage message) {}
     record OllamaTagsResponse(List<OllamaModel> models) {}

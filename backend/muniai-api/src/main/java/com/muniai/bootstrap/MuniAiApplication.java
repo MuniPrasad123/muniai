@@ -2,6 +2,7 @@ package com.muniai.bootstrap;
 
 import com.muniai.ai.infrastructure.OllamaConfigurationProperties;
 import com.muniai.chat.application.ChatConfigurationProperties;
+import com.muniai.conversation.application.RagConfigurationProperties;
 import com.muniai.document.application.DocumentConfigurationProperties;
 import com.muniai.document.application.IndexingConfigurationProperties;
 import org.springframework.boot.SpringApplication;
@@ -12,7 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages = "com.muniai")
 @EnableConfigurationProperties({OllamaConfigurationProperties.class, ChatConfigurationProperties.class,
-        DocumentConfigurationProperties.class, IndexingConfigurationProperties.class})
+        DocumentConfigurationProperties.class, IndexingConfigurationProperties.class, RagConfigurationProperties.class})
 @EntityScan("com.muniai")
 @EnableJpaRepositories("com.muniai")
 public class MuniAiApplication {

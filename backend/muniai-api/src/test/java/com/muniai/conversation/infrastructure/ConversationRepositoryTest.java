@@ -33,7 +33,8 @@ class ConversationRepositoryTest {
         Instant now = Instant.now();
         ConversationEntity conversation = conversations.saveAndFlush(new ConversationEntity(UUID.randomUUID(), "title", now, now));
         messages.saveAndFlush(new MessageEntity(UUID.randomUUID(), conversation,
-                com.muniai.conversation.domain.MessageRole.USER, "hello", null, now));
+                com.muniai.conversation.domain.MessageRole.USER, "hello", null,
+                com.muniai.conversation.domain.ChatMode.NORMAL, now));
         jdbc.update("delete from conversations where id = ?", conversation.getId());
         assertEquals(0, jdbc.queryForObject("select count(*) from messages", Integer.class));
     }

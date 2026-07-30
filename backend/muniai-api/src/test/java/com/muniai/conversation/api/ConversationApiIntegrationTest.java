@@ -11,6 +11,10 @@ import com.muniai.bootstrap.MuniAiApplication;
 import com.muniai.conversation.infrastructure.ConversationRepository;
 import com.muniai.conversation.infrastructure.MessageRepository;
 import com.muniai.shared.exception.AiProviderUnavailableException;
+import com.muniai.document.application.DocumentIndexingService;
+import com.muniai.document.application.VectorStore;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +32,38 @@ class ConversationApiIntegrationTest {
     @Autowired ConversationRepository conversations;
     @Autowired MessageRepository messages;
     @MockBean LanguageModelProvider provider;
+    @MockBean DocumentIndexingService indexing;
 
     @BeforeEach
     void clean() {
         conversations.deleteAllInBatch();
         reset(provider);
+        reset(indexing);
+    }
+
+    @Test
+    void documentRagPersistsStructuredCitations() throws Exception {
+        String createBody=mvc.perform(post("/api/v1/conversations")).andReturn().getResponse().getContentAsString();
+        String id=new com.fasterxml.jackson.databind.ObjectMapper().readTree(createBody).get("id").asText();
+        UUID documentId=UUID.randomUUID(),chunkId=UUID.randomUUID();
+        when(indexing.retrieve(eq("How is traffic routed?"),eq(5),eq(java.util.Set.of(documentId))))
+                .thenReturn(List.of(new VectorStore.SearchHit(chunkId,documentId,7,0.82,
+                        "The load balancer forwards traffic to a target group.","architecture.pdf")));
+        when(provider.complete(any())).thenReturn(new ChatCompletion(
+                "Traffic is forwarded through the load balancer. [Source 1]","llama3.2:3b","ollama"));
+
+        mvc.perform(post("/api/v1/conversations/{id}/messages",id).contentType("application/json")
+                        .content("{\"message\":\"How is traffic routed?\",\"mode\":\"DOCUMENT_RAG\","
+                                +"\"documentIds\":[\""+documentId+"\"],\"topK\":5}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.assistantMessage.mode").value("DOCUMENT_RAG"))
+                .andExpect(jsonPath("$.assistantMessage.citations[0].documentId").value(documentId.toString()))
+                .andExpect(jsonPath("$.assistantMessage.citations[0].chunkIndex").value(7))
+                .andExpect(jsonPath("$.assistantMessage.citations[0].similarityScore").value(0.82));
+
+        mvc.perform(get("/api/v1/conversations/{id}",id))
+                .andExpect(jsonPath("$.messages[1].citations.length()").value(1))
+                .andExpect(jsonPath("$.messages[1].citations[0].originalFileName").value("architecture.pdf"));
     }
 
     @Test

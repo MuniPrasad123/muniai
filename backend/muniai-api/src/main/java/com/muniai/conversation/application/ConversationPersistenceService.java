@@ -14,10 +14,13 @@ public class ConversationPersistenceService {
     static final String DEFAULT_TITLE = "New conversation";
     private final ConversationRepository conversations;
     private final MessageRepository messages;
+    private final MessageCitationRepository citations;
 
-    public ConversationPersistenceService(ConversationRepository conversations, MessageRepository messages) {
+    public ConversationPersistenceService(ConversationRepository conversations, MessageRepository messages,
+                                          MessageCitationRepository citations) {
         this.conversations = conversations;
         this.messages = messages;
+        this.citations = citations;
     }
 
     @Transactional
@@ -56,7 +59,7 @@ public class ConversationPersistenceService {
     }
 
     @Transactional
-    public ConversationMessage saveUserMessage(UUID conversationId, String content) {
+    public ConversationMessage saveUserMessage(UUID conversationId, String content, ChatMode mode) {
         ConversationEntity conversation = required(conversationId);
         Instant now = Instant.now();
         if (DEFAULT_TITLE.equals(conversation.getTitle()) && messages.countByConversation_Id(conversationId) == 0) {
@@ -64,15 +67,30 @@ public class ConversationPersistenceService {
         } else {
             conversation.touch(now);
         }
-        return map(messages.save(new MessageEntity(UUID.randomUUID(), conversation, MessageRole.USER, content, null, now)));
+        return map(messages.save(new MessageEntity(
+                UUID.randomUUID(), conversation, MessageRole.USER, content, null, mode, now)));
     }
 
     @Transactional
-    public ConversationMessage saveAssistantMessage(UUID conversationId, String content, String model) {
+    public ConversationMessage saveAssistantMessage(UUID conversationId, String content, String model, ChatMode mode,
+                                                     List<MessageCitation> citationValues) {
         ConversationEntity conversation = required(conversationId);
         Instant now = Instant.now();
         conversation.touch(now);
-        return map(messages.save(new MessageEntity(UUID.randomUUID(), conversation, MessageRole.ASSISTANT, content, model, now)));
+        MessageEntity saved = messages.save(new MessageEntity(
+                UUID.randomUUID(), conversation, MessageRole.ASSISTANT, content, model, mode, now));
+        List<MessageCitationEntity> savedCitations = citationValues.stream().map(value -> new MessageCitationEntity(
+                value.id(), saved, value.citationIndex(), value.documentId(), value.chunkId(), value.chunkIndex(),
+                value.originalFileName(), value.pageNumber(), value.similarityScore(), value.contentPreview(), now)).toList();
+        citations.saveAll(savedCitations);
+        return map(saved, savedCitations.stream().map(this::map).toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConversationMessage> recentMessages(UUID conversationId, int maximum) {
+        List<MessageEntity> values = messages.findByConversation_IdOrderByCreatedAtAscIdAsc(conversationId);
+        int start = Math.max(0, values.size() - maximum);
+        return values.subList(start, values.size()).stream().map(this::map).toList();
     }
 
     private ConversationEntity required(UUID id) {
@@ -89,6 +107,17 @@ public class ConversationPersistenceService {
     }
 
     private ConversationMessage map(MessageEntity entity) {
-        return new ConversationMessage(entity.getId(), entity.getConversationId(), entity.getRole(), entity.getContent(), entity.getModel(), entity.getCreatedAt());
+        return map(entity, citations.findByMessage_IdOrderByCitationIndex(entity.getId()).stream().map(this::map).toList());
+    }
+
+    private ConversationMessage map(MessageEntity entity, List<MessageCitation> citationValues) {
+        return new ConversationMessage(entity.getId(), entity.getConversationId(), entity.getRole(), entity.getContent(),
+                entity.getModel(), entity.getChatMode(), citationValues, entity.getCreatedAt());
+    }
+
+    private MessageCitation map(MessageCitationEntity value) {
+        return new MessageCitation(value.getId(), value.getCitationIndex(), value.getDocumentId(),
+                value.getOriginalFileName(), value.getChunkId(), value.getChunkIndex(), value.getPageNumber(),
+                value.getSimilarityScore(), value.getContentPreview(), value.getCreatedAt());
     }
 }
