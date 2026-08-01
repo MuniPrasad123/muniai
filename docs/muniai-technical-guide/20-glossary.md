@@ -1,0 +1,21 @@
+# Glossary
+
+- API: an interface that lets one program call another program over HTTP.
+- DTO: a data-transfer object carrying request or response payloads.
+- Entity: a JPA model mapped to a database table.
+- Repository: a persistence abstraction that reads and writes entities.
+- Service: a layer that contains business logic.
+- Controller: an HTTP entry point.
+- Migration: a database change script.
+- Flyway: a database migration tool.
+- LLM: a large language model that generates text.
+- Token: a small unit of text used by a model.
+- Prompt: the text handed to a model.
+- Ollama: a local runtime for serving models on the machine.
+- Embedding: a numeric vector representation of text.
+- Vector: a list of numbers used to compare semantic meaning.
+- Chunk: a segment of document text.
+- Vector database: a database optimized for nearest-neighbor search.
+- Qdrant: the local vector database used by MuniAI.
+- RAG: retrieval-augmented generation, where relevant chunks are fed into the prompt.
+- Citation: evidence metadata attached to an answer.

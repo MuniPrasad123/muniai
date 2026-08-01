@@ -1,0 +1,7 @@
+flowchart LR
+  UI[React UI] --> API[Spring Boot API]
+  API --> PG[(PostgreSQL)]
+  API --> FS[Local filesystem]
+  API --> O1[Ollama chat]
+  API --> O2[Ollama embeddings]
+  API --> Q[(Qdrant)]
