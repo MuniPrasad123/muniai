@@ -1,0 +1,8 @@
+sequenceDiagram
+  participant UI as React UI
+  participant API as Spring Boot
+  participant O as Ollama
+  UI->>API: POST /api/v1/chat
+  API->>O: /api/chat
+  O-->>API: response
+  API-->>UI: JSON answer

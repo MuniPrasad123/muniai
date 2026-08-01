@@ -1,0 +1,6 @@
+flowchart TD
+  Question[Question] --> Embed[Embed query]
+  Embed --> Search[Search Qdrant]
+  Search --> Prompt[Build grounded prompt]
+  Prompt --> Model[Ollama chat model]
+  Model --> Citations[Save citations]
