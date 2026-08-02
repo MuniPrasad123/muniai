@@ -9,9 +9,9 @@ Allowed statuses: `NOT_STARTED`, `IN_PROGRESS`, `BLOCKED`, `IMPLEMENTED`, `VERIF
 | 2 | Spring Boot to Ollama integration | VERIFIED | Java 21 Maven package passed; 12/12 tests passed; health endpoints passed; real local `llama3.2:3b` request succeeded; backend stopped afterward. |
 | 3 | React chat interface | VERIFIED | Frontend audit passed with 0 known vulnerabilities; 4/4 component tests and production build passed; 12/12 backend regressions passed; real loopback proxy chat with `llama3.2:3b` succeeded; services stopped afterward. |
 | 4 | PostgreSQL conversation history | VERIFIED | 20/20 backend tests, 8/8 frontend tests, and production build passed. Native PostgreSQL 17 accepted loopback-only connections, Flyway V1 applied, and a live API-to-PostgreSQL-to-Ollama request persisted two messages and was cleaned up successfully. |
-| 5 | Secure document upload | IMPLEMENTED | 26/26 backend tests, Flyway V1+V2 validation, 14/14 frontend tests, TypeScript checks, and production build passed. Synthetic PDF/TXT API uploads passed; native PostgreSQL/live-browser verification remains outstanding. |
-| 6 | Embeddings and Qdrant | IMPLEMENTED | 35/35 backend tests, Flyway V1-V3 validation, 16/16 frontend tests, TypeScript checks, and production build passed. Live Qdrant/Ollama indexing remains unverified because Docker was not running and the Ollama CLI was unavailable on this shell PATH. |
-| 7 | Complete RAG chat | NOT_STARTED | — |
+| 5 | Secure document upload | VERIFIED | 52/52 backend and 19/19 frontend tests, TypeScript checks, and production build passed. Completed manual verification covers document upload, PostgreSQL metadata persistence, text extraction/viewing, local storage, and safe deletion. |
+| 6 | Embeddings and Qdrant | VERIFIED | Automated regressions/build passed. Completed manual verification covers chunk persistence, local `nomic-embed-text` embeddings, single/multiple-document Qdrant indexing, semantic search, duplicate-free re-indexing, index removal, safe failures, and successful Qdrant recovery. |
+| 7 | Complete RAG chat | VERIFIED | Automated regressions/build passed. Completed manual end-to-end verification covers Normal Chat, Ask Documents, single/multiple-document RAG, grounded answers, citation alignment/persistence, conversation reopening, retrieved evidence, and no-context handling. |
 | 8 | Controlled long-term memory | NOT_STARTED | — |
 | 9 | Approval framework and audit logging | NOT_STARTED | — |
 | 10 | GitHub read-only integration | NOT_STARTED | — |

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#f8fafc"/>
+  <rect x="70" y="70" width="1260" height="760" rx="28" fill="#ffffff" stroke="#dbeafe" stroke-width="3"/>
+  <text x="700" y="135" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Phase Roadmap</text>
+  <text x="700" y="176" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#475569">From environment check to grounded RAG chat</text>
+
+  <rect x="120" y="230" width="180" height="130" rx="18" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="210" y="276" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1d4ed8">Phase 1</text>
+  <text x="210" y="308" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Environment</text>
+  <text x="210" y="332" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">verification</text>
+
+  <rect x="340" y="230" width="180" height="130" rx="18" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="430" y="276" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#15803d">Phase 2</text>
+  <text x="430" y="308" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Spring Boot</text>
+  <text x="430" y="332" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">to Ollama</text>
+
+  <rect x="560" y="230" width="180" height="130" rx="18" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="650" y="276" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#6d28d9">Phase 3</text>
+  <text x="650" y="308" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">React UI</text>
+  <text x="650" y="332" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">chat experience</text>
+
+  <rect x="780" y="230" width="180" height="130" rx="18" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="870" y="276" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#b45309">Phase 4</text>
+  <text x="870" y="308" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Conversation</text>
+  <text x="870" y="332" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">persistence</text>
+
+  <rect x="1000" y="230" width="180" height="130" rx="18" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text x="1090" y="276" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#be185d">Phase 5</text>
+  <text x="1090" y="308" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Document</text>
+  <text x="1090" y="332" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">upload + extraction</text>
+
+  <rect x="300" y="450" width="220" height="140" rx="18" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="410" y="496" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#0369a1">Phase 6</text>
+  <text x="410" y="528" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Chunking, embeddings,</text>
+  <text x="410" y="552" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">Qdrant indexing</text>
+
+  <rect x="620" y="450" width="220" height="140" rx="18" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="730" y="496" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#dc2626">Phase 7</text>
+  <text x="730" y="528" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">RAG + citations</text>
+  <text x="730" y="552" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#334155">grounded answers</text>
+
+  <line x1="210" y1="360" x2="430" y2="450" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="430" y1="360" x2="730" y2="450" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>
