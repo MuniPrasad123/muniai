@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <rect width="1400" height="900" fill="#f8fafc"/>
+  <rect x="90" y="80" width="1220" height="740" rx="28" fill="#ffffff" stroke="#dbeafe" stroke-width="3"/>
+  <text x="700" y="145" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="34" font-weight="700" fill="#0f172a">Local Development Stack</text>
+  <text x="700" y="186" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#475569">The project is designed to run from a single local environment with a few core services</text>
+
+  <rect x="150" y="260" width="220" height="160" rx="20" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <text x="260" y="315" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#1d4ed8">Java 21</text>
+  <text x="260" y="350" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Spring Boot API</text>
+  <text x="260" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Backend runtime</text>
+
+  <rect x="420" y="260" width="220" height="160" rx="20" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <text x="530" y="315" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#15803d">Node + Vite</text>
+  <text x="530" y="350" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">React frontend</text>
+  <text x="530" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Developer UI</text>
+
+  <rect x="690" y="260" width="220" height="160" rx="20" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+  <text x="800" y="315" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#6d28d9">PostgreSQL</text>
+  <text x="800" y="350" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Conversations</text>
+  <text x="800" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">and document metadata</text>
+
+  <rect x="960" y="260" width="220" height="160" rx="20" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+  <text x="1070" y="315" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#b45309">Docker</text>
+  <text x="1070" y="350" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Qdrant container</text>
+  <text x="1070" y="378" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">and local services</text>
+
+  <rect x="260" y="540" width="260" height="150" rx="20" fill="#fce7f3" stroke="#db2777" stroke-width="2"/>
+  <text x="390" y="595" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#be185d">Ollama</text>
+  <text x="390" y="630" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Local LLM and embeddings</text>
+
+  <rect x="570" y="540" width="260" height="150" rx="20" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+  <text x="700" y="595" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#0369a1">Qdrant</text>
+  <text x="700" y="630" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Chunk vector storage</text>
+
+  <rect x="880" y="540" width="260" height="150" rx="20" fill="#fef2f2" stroke="#ef4444" stroke-width="2"/>
+  <text x="1010" y="595" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700" fill="#dc2626">Local Files</text>
+  <text x="1010" y="630" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#334155">Original uploaded docs</text>
+
+  <line x1="260" y1="420" x2="390" y2="540" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="530" y1="420" x2="700" y2="540" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <line x1="800" y1="420" x2="1010" y2="540" stroke="#64748b" stroke-width="3" marker-end="url(#arrow)"/>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

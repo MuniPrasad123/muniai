@@ -34,3 +34,10 @@ This folder contains a beginner-friendly technical guide for the implementation 
 2. Follow the setup and verification chapters.
 3. Read the phase chapters in order from Phase 1 to Phase 7.
 4. Use [12-api-reference.md](12-api-reference.md), [13-database-reference.md](13-database-reference.md), and [19-code-navigation-guide.md](19-code-navigation-guide.md) as reference while browsing the code.
+
+## Visual infographics
+
+- [Architecture overview](images/architecture-overview.svg)
+- [Local development stack](images/setup-stack.svg)
+- [Document ingestion and RAG flow](images/document-rag-flow.svg)
+- [Phase roadmap](images/phase-roadmap.svg)

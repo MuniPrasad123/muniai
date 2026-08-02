@@ -28,3 +28,13 @@
 ---
 
 This combined guide is assembled from the chapter files in this folder.
+
+## Visual infographics
+
+![Architecture overview](images/architecture-overview.svg)
+
+![Local development stack](images/setup-stack.svg)
+
+![Document ingestion and RAG flow](images/document-rag-flow.svg)
+
+![Phase roadmap](images/phase-roadmap.svg)
