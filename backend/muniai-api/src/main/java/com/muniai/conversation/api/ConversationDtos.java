@@ -11,6 +11,7 @@ import jakarta.validation.constraints.DecimalMax;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import com.muniai.memory.domain.*;
 
 public final class ConversationDtos {
     private ConversationDtos() {}
@@ -27,10 +28,15 @@ public final class ConversationDtos {
     public record CitationResponse(UUID citationId,int citationIndex,UUID documentId,String originalFileName,
             UUID chunkId,int chunkIndex,Integer pageNumber,double similarityScore,String contentPreview){}
     public record MessageResponse(UUID id, UUID conversationId, MessageRole role, String content,
-                                  String model, ChatMode mode, List<CitationResponse> citations, Instant createdAt) {}
+                                  String model, ChatMode mode, List<CitationResponse> citations,
+                                  List<UsedMemoryResponse> usedMemories, Instant createdAt) {}
+    public record UsedMemoryResponse(UUID memoryId,MemoryCategory category,String key,String displayLabel){}
+    public record MemorySummaryResponse(UUID id,MemoryCategory category,String key,String value,String displayLabel,
+                                        MemoryStatus status){}
     public record ConversationResponse(UUID id, String title, Instant createdAt, Instant updatedAt,
                                        List<MessageResponse> messages) {}
     public record SendMessageResponse(UUID conversationId, MessageResponse userMessage,
                                       MessageResponse assistantMessage, String provider, String correlationId,
-                                      boolean noRelevantContext) {}
+                                      boolean noRelevantContext,MemorySummaryResponse memoryProposal,
+                                      List<MemorySummaryResponse> recalledMemories,String memoryWarning) {}
 }

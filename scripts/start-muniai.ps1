@@ -212,18 +212,43 @@ function Ensure-Backend {
     }
     if ($CheckOnly) { throw "Backend is not ready." }
 
-    if (Test-BackendBuildNeeded $jar) {
-        Write-Host "Building the backend from local Maven dependencies..."
-        $maven = Get-Executable "mvn.cmd"
-        & $maven -o -DskipTests package -f (Join-Path $backendDirectory "pom.xml")
-        if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $jar)) {
-            throw "Offline backend build failed. Run 'mvn -DskipTests package' once while online, then rerun."
+    $originalPassword = [Environment]::GetEnvironmentVariable("MUNIAI_DB_PASSWORD", "Process")
+    $passwordWasTemporarilySet = $false
+    if ([string]::IsNullOrWhiteSpace($originalPassword)) {
+        $securePassword = Read-Host "PostgreSQL password for the 'muniai' user" -AsSecureString
+        $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+        try {
+            $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
+            [Environment]::SetEnvironmentVariable("MUNIAI_DB_PASSWORD", $plainPassword, "Process")
+            $passwordWasTemporarilySet = $true
+        }
+        finally {
+            if ($passwordPointer -ne [IntPtr]::Zero) {
+                [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
+            }
+            $plainPassword = $null
         }
     }
 
-    $java = Get-Executable "java.exe"
-    Start-LoggedProcess $java @("-jar", $jar) $backendDirectory "backend"
-    Wait-ForEndpoint "Backend" "http://127.0.0.1:8080/actuator/health"
+    try {
+        if (Test-BackendBuildNeeded $jar) {
+            Write-Host "Building the backend from local Maven dependencies..."
+            $maven = Get-Executable "mvn.cmd"
+            & $maven -o -DskipTests package -f (Join-Path $backendDirectory "pom.xml")
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $jar)) {
+                throw "Offline backend build failed. Run 'mvn -DskipTests package' once while online, then rerun."
+            }
+        }
+
+        $java = Get-Executable "java.exe"
+        Start-LoggedProcess $java @("-jar", $jar) $backendDirectory "backend"
+        Wait-ForEndpoint "Backend" "http://127.0.0.1:8080/actuator/health"
+    }
+    finally {
+        if ($passwordWasTemporarilySet) {
+            [Environment]::SetEnvironmentVariable("MUNIAI_DB_PASSWORD", $null, "Process")
+        }
+    }
     Add-Status "Backend" "READY" "http://127.0.0.1:8080"
 }
 
@@ -247,25 +272,7 @@ function Ensure-Frontend {
     Add-Status "Frontend" "READY" "http://127.0.0.1:5173"
 }
 
-$originalPassword = [Environment]::GetEnvironmentVariable("MUNIAI_DB_PASSWORD", "Process")
-$passwordWasTemporarilySet = $false
 try {
-    if (-not $CheckOnly -and [string]::IsNullOrWhiteSpace($originalPassword)) {
-        $securePassword = Read-Host "PostgreSQL password for the 'muniai' user" -AsSecureString
-        $passwordPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
-        try {
-            $plainPassword = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($passwordPointer)
-            [Environment]::SetEnvironmentVariable("MUNIAI_DB_PASSWORD", $plainPassword, "Process")
-            $passwordWasTemporarilySet = $true
-        }
-        finally {
-            if ($passwordPointer -ne [IntPtr]::Zero) {
-                [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($passwordPointer)
-            }
-            $plainPassword = $null
-        }
-    }
-
     Ensure-PostgreSql
     Ensure-DockerAndQdrant
     Ensure-Ollama
@@ -284,9 +291,4 @@ catch {
     }
     Write-Host "Logs (if created): $script:RuntimeDirectory"
     exit 1
-}
-finally {
-    if ($passwordWasTemporarilySet) {
-        [Environment]::SetEnvironmentVariable("MUNIAI_DB_PASSWORD", $null, "Process")
-    }
 }

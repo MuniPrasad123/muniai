@@ -3,6 +3,7 @@ import com.muniai.observability.CorrelationId; import com.muniai.shared.api.ApiE
 import java.time.Instant; import java.util.List; import org.slf4j.*; import org.springframework.http.*; import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException; import org.springframework.web.bind.annotation.*;
+import com.muniai.memory.application.MemoryException;
 @RestControllerAdvice public class GlobalExceptionHandler {
  private static final Logger LOGGER=LoggerFactory.getLogger(GlobalExceptionHandler.class);
  @ExceptionHandler(MethodArgumentNotValidException.class) ResponseEntity<ApiError> invalid(MethodArgumentNotValidException e,HttpServletRequest r){return error(HttpStatus.BAD_REQUEST,"INVALID_REQUEST","The request is invalid.",r,e.getBindingResult().getFieldErrors().stream().map(x->x.getField()+": "+x.getDefaultMessage()).toList());}
@@ -18,6 +19,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException; import org.
  @ExceptionHandler(DocumentException.class) ResponseEntity<ApiError> document(DocumentException e,HttpServletRequest r){
   HttpStatus status=switch(e.code()){case "DOCUMENT_TEXT_UNAVAILABLE"->HttpStatus.CONFLICT; case "DOCUMENT_STORAGE_FAILED","DOCUMENT_DELETE_FAILED"->HttpStatus.INTERNAL_SERVER_ERROR; case "DOCUMENT_TOO_LARGE"->HttpStatus.PAYLOAD_TOO_LARGE; case "EMBEDDING_PROVIDER_UNAVAILABLE","QDRANT_UNAVAILABLE","QDRANT_UPSERT_FAILED","QDRANT_DELETE_FAILED","QDRANT_COLLECTION_CREATE_FAILED"->HttpStatus.SERVICE_UNAVAILABLE; default->HttpStatus.BAD_REQUEST;};
   if(status.is5xxServerError()) LOGGER.error("Document operation failed: {}",e.code(),e);
+  return error(status,e.code(),e.getMessage(),r,List.of());
+ }
+ @ExceptionHandler(MemoryException.class) ResponseEntity<ApiError> memory(MemoryException e,HttpServletRequest r){
+  HttpStatus status=switch(e.code()){case "MEMORY_NOT_FOUND"->HttpStatus.NOT_FOUND;case "MEMORY_CONFLICT","INVALID_MEMORY_TRANSITION"->HttpStatus.CONFLICT;case "MEMORY_DISABLED"->HttpStatus.SERVICE_UNAVAILABLE;default->HttpStatus.BAD_REQUEST;};
   return error(status,e.code(),e.getMessage(),r,List.of());
  }
  @ExceptionHandler(Exception.class) ResponseEntity<ApiError> unexpected(Exception e,HttpServletRequest r){LOGGER.error("Unexpected request failure",e);return error(HttpStatus.INTERNAL_SERVER_ERROR,"INTERNAL_ERROR","An unexpected internal error occurred.",r,List.of());}

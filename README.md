@@ -4,7 +4,15 @@ MuniAI is a private, local-first personal AI assistant. The project is intention
 
 ## Current scope
 
-MuniAI includes local conversation persistence, constrained document upload/extraction, Ollama embeddings, Qdrant indexing, semantic diagnostics, and explicit document-grounded chat with persisted citations. The browser, API, database, Ollama, Qdrant, and original files remain local. OCR, long-term memory, agents, tools, web search, and connectors remain out of scope.
+MuniAI includes local conversation persistence, constrained document upload/extraction, Ollama embeddings, Qdrant indexing, semantic diagnostics, explicit document-grounded chat with persisted citations, and approval-gated long-term memory. Approved memories remain reviewable, editable, disableable, supersedeable, and deletable, and responses disclose which memories influenced them. The browser, API, database, Ollama, Qdrant, original files, and memory records remain local. OCR, agents, tools, web search, cloud models, and external connectors remain out of scope.
+
+## Recorded demonstration
+
+A captioned local demonstration and evidence-based project update are available in [the MuniAI demo case study](docs/demo/CASE-STUDY.md). The walkthrough covers document indexing, semantic search, Ask Documents citations, approval-gated memory, memory-use disclosure, and the memory management page.
+
+- [Watch the MP4](docs/demo/muniai-demo.mp4)
+- [Read accessible captions](docs/demo/muniai-demo.vtt)
+- [Review completed and pending work](docs/demo/CASE-STUDY.md#completed)
 
 ## Repository layout
 
@@ -51,3 +59,5 @@ Phase 5 guides: [document architecture](docs/architecture/phase-05-document-uplo
 Phase 6 guides: [indexing and vector architecture](docs/architecture/phase-06-indexing-and-vectors.md), [Qdrant setup](docs/setup/QDRANT_SETUP.md), and [indexing API](docs/api/DOCUMENT_INDEXING_API.md). Phase 6 creates searchable vectors but does not connect documents to chat.
 
 Phase 7 guides: [RAG architecture](docs/architecture/phase-07-rag-chat.md) and [RAG chat API](docs/api/RAG_CHAT_API.md).
+
+Phase 8 guides: [controlled-memory architecture](docs/architecture/phase-08-memory-architecture.md), [memory configuration](docs/setup/MEMORY_CONFIGURATION.md), [memory security](docs/security/MEMORY_SECURITY.md), and [verification evidence](docs/testing/phase-08-verification.md).

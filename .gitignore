@@ -5,6 +5,9 @@
 
 # Private runtime data
 local-data/
+docs/demo/frames/
+docs/demo/rendered-frames/
+docs/demo/*.ffconcat
 
 # IDE and operating-system files
 .idea/

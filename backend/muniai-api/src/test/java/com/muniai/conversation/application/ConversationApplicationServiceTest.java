@@ -14,15 +14,23 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import com.muniai.memory.application.*;
+import java.util.Optional;
 
 class ConversationApplicationServiceTest {
     private final ConversationPersistenceService persistence = mock(ConversationPersistenceService.class);
     private final LanguageModelProvider provider = mock(LanguageModelProvider.class);
     private final RagService rag = mock(RagService.class);
+    private final MemoryApplicationService memories=mock(MemoryApplicationService.class);
+    private final MemorySelectionService selection=mock(MemorySelectionService.class);
+    private final MemoryPromptFormatter memoryPrompts=new MemoryPromptFormatter();
+    private final MemoryCommandService commands=mock(MemoryCommandService.class);
     private final RagConfigurationProperties ragProperties = new RagConfigurationProperties(
             5,10,0.45,5,6000,8,"",0.1,Duration.ofSeconds(10));
     private final ConversationApplicationService service = new ConversationApplicationService(
-            persistence, provider, new ChatConfigurationProperties(100),rag,ragProperties);
+            persistence, provider, new ChatConfigurationProperties(100),rag,ragProperties,memories,selection,memoryPrompts,commands);
+
+    private void noMemory(String content){when(commands.propose(eq(content),any(),isNull())).thenReturn(Optional.empty());when(selection.select(content)).thenReturn(List.of());}
 
     @Test
     void savesUserThenAssistantAroundProviderCall() {
@@ -30,8 +38,9 @@ class ConversationApplicationServiceTest {
         ConversationMessage user = message(conversationId, MessageRole.USER, "hello", null);
         ConversationMessage assistant = message(conversationId, MessageRole.ASSISTANT, "answer", "model");
         when(persistence.saveUserMessage(conversationId, "hello",ChatMode.NORMAL)).thenReturn(user);
-        when(provider.complete(new ChatCompletionRequest("hello"))).thenReturn(new ChatCompletion("answer", "model", "ollama"));
-        when(persistence.saveAssistantMessage(conversationId,"answer","model",ChatMode.NORMAL,List.of())).thenReturn(assistant);
+        noMemory("hello");
+        when(provider.complete(any())).thenReturn(new ChatCompletion("answer", "model", "ollama"));
+        when(persistence.saveAssistantMessage(conversationId,"answer","model",ChatMode.NORMAL,List.of(),List.of())).thenReturn(assistant);
 
         ConversationApplicationService.SendMessageResult result = service.send(
                 conversationId,"hello",ChatMode.NORMAL,Set.of(),null,null);
@@ -39,8 +48,8 @@ class ConversationApplicationServiceTest {
         assertEquals(assistant, result.assistantMessage());
         var ordered = inOrder(persistence, provider);
         ordered.verify(persistence).saveUserMessage(conversationId,"hello",ChatMode.NORMAL);
-        ordered.verify(provider).complete(new ChatCompletionRequest("hello"));
-        ordered.verify(persistence).saveAssistantMessage(conversationId,"answer","model",ChatMode.NORMAL,List.of());
+        ordered.verify(provider).complete(argThat(request->request.message().contains("<user_message>")&&request.message().contains("hello")));
+        ordered.verify(persistence).saveAssistantMessage(conversationId,"answer","model",ChatMode.NORMAL,List.of(),List.of());
         verifyNoInteractions(rag);
     }
 
@@ -49,6 +58,7 @@ class ConversationApplicationServiceTest {
         UUID conversationId = UUID.randomUUID();
         when(persistence.saveUserMessage(conversationId,"hello",ChatMode.NORMAL))
                 .thenReturn(message(conversationId,MessageRole.USER,"hello",null));
+        noMemory("hello");
         when(provider.complete(any())).thenThrow(new AiProviderUnavailableException(new RuntimeException()));
 
         assertThrows(AiProviderUnavailableException.class,()->service.send(
@@ -64,16 +74,17 @@ class ConversationApplicationServiceTest {
         ConversationMessage assistant=new ConversationMessage(UUID.randomUUID(),conversationId,MessageRole.ASSISTANT,
                 "grounded","model",ChatMode.DOCUMENT_RAG,List.of(),Instant.now());
         when(persistence.saveUserMessage(conversationId,"question",ChatMode.DOCUMENT_RAG)).thenReturn(user);
+        noMemory("question");
         when(persistence.recentMessages(conversationId,9)).thenReturn(List.of(user));
-        when(rag.answer("question",Set.of(documentId),5,null,List.of())).thenReturn(
+        when(rag.answer("question",Set.of(documentId),5,null,List.of(),List.of())).thenReturn(
                 new RagService.RagResult("grounded",List.of(),new ChatCompletion("grounded","model","ollama")));
-        when(persistence.saveAssistantMessage(conversationId,"grounded","model",ChatMode.DOCUMENT_RAG,List.of()))
+        when(persistence.saveAssistantMessage(conversationId,"grounded","model",ChatMode.DOCUMENT_RAG,List.of(),List.of()))
                 .thenReturn(assistant);
 
         var result=service.send(conversationId,"question",ChatMode.DOCUMENT_RAG,Set.of(documentId),5,null);
 
         assertEquals(assistant,result.assistantMessage());
-        verify(rag).answer("question",Set.of(documentId),5,null,List.of());
+        verify(rag).answer("question",Set.of(documentId),5,null,List.of(),List.of());
         verifyNoInteractions(provider);
     }
 

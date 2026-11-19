@@ -11,6 +11,7 @@ import com.muniai.shared.exception.DocumentException;
 import java.time.Instant;
 import java.util.*;
 import org.springframework.stereotype.Service;
+import com.muniai.memory.domain.UserMemory;
 
 @Service
 public class RagService {
@@ -29,6 +30,10 @@ public class RagService {
 
     public RagResult answer(String question, Set<UUID> documentIds, Integer requestedTopK,
                             Double requestedThreshold, List<ConversationMessage> history) {
+        return answer(question,documentIds,requestedTopK,requestedThreshold,history,List.of());
+    }
+    public RagResult answer(String question, Set<UUID> documentIds, Integer requestedTopK,
+                            Double requestedThreshold, List<ConversationMessage> history,List<UserMemory> memories) {
         int topK=requestedTopK==null?properties.topK():requestedTopK;
         if(topK<1||topK>properties.maximumTopK())
             throw new DocumentException("INVALID_RAG_TOP_K",
@@ -46,7 +51,7 @@ public class RagService {
                 .toList();
         if(filtered.isEmpty()) return new RagResult(NO_CONTEXT_ANSWER,List.of(),null);
 
-        RagPromptBuilder.RagPrompt prompt=prompts.build(question,history,filtered,properties.maxContextCharacters());
+        RagPromptBuilder.RagPrompt prompt=prompts.build(question,history,filtered,properties.maxContextCharacters(),memories);
         ChatCompletion completion=provider.complete(new ChatCompletionRequest(prompt.prompt(),properties.chatModel(),
                 properties.temperature(),properties.requestTimeout()));
         CitationAligner.Alignment alignment=citationAligner.align(completion.answer(),prompt.includedHits());

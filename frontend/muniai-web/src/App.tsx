@@ -1,7 +1,9 @@
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
-import { ChatMode, Conversation, ConversationApiError, conversationApi, StoredMessage } from './api/conversations'
+import { ChatMode, Conversation, ConversationApiError, conversationApi, StoredMessage, MemorySummary } from './api/conversations'
 import { documentApi, DocumentMetadata } from './api/documents'
 import DocumentManager from './DocumentManager'
+import MemoryManager from './MemoryManager'
+import { memoryApi } from './api/memories'
 
 const MAX_MESSAGE_LENGTH = 10_000
 
@@ -13,7 +15,9 @@ export default function App() {
   const [isLoadingList, setIsLoadingList] = useState(true)
   const [isLoadingChat, setIsLoadingChat] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [view, setView] = useState<'chat' | 'documents'>('chat')
+  const [view, setView] = useState<'chat' | 'documents' | 'memory'>('chat')
+  const [proposals, setProposals] = useState<Record<string, MemorySummary>>({})
+  const [recalled, setRecalled] = useState<Record<string, MemorySummary[]>>({})
   const [mode, setMode] = useState<ChatMode>('NORMAL')
   const [indexedDocuments, setIndexedDocuments] = useState<DocumentMetadata[]>([])
   const [selectedDocumentIds, setSelectedDocumentIds] = useState<string[]>([])
@@ -71,11 +75,14 @@ export default function App() {
       }
       const pending: StoredMessage = {
         id: crypto.randomUUID(), conversationId: conversation.id, role: 'USER', content, model: null,
-        mode: requestMode, citations: [], createdAt: new Date().toISOString(),
+        mode: requestMode, citations: [], usedMemories: [], createdAt: new Date().toISOString(),
       }
       setActive({ ...conversation, messages: [...conversation.messages, pending] })
       controller.current = new AbortController()
       const response = await conversationApi.send(conversation.id, content, requestMode, documentIds, controller.current.signal)
+      if (response.memoryProposal) setProposals((current) => ({ ...current, [response.assistantMessage.id]: response.memoryProposal! }))
+      if (response.recalledMemories?.length) setRecalled((current) => ({ ...current, [response.assistantMessage.id]: response.recalledMemories }))
+      if (response.memoryWarning) setError(response.memoryWarning)
       setActive((current) => current && current.id === response.conversationId
         ? { ...current, messages: [...current.messages.filter((item) => item.id !== pending.id), response.userMessage, response.assistantMessage] }
         : current)
@@ -130,6 +137,9 @@ export default function App() {
       <button className="document-nav" type="button" onClick={() => setView(view === 'chat' ? 'documents' : 'chat')}>
         {view === 'chat' ? 'Documents' : 'Back to chat'}
       </button>
+      <button className="document-nav" type="button" onClick={() => setView(view === 'memory' ? 'chat' : 'memory')}>
+        {view === 'memory' ? 'Back to chat' : 'Memory'}
+      </button>
       <div className="conversation-list">
         {isLoadingList ? <p className="sidebar-state">Loading conversations…</p> : conversations.length === 0
           ? <p className="sidebar-state">No saved conversations yet.</p>
@@ -143,7 +153,7 @@ export default function App() {
     </aside>
 
     <section className="main-panel">
-      {view === 'documents' ? <DocumentManager /> : <>
+      {view === 'documents' ? <DocumentManager /> : view === 'memory' ? <MemoryManager /> : <>
       <header className="topbar">
         <div className="mobile-brand">MuniAI</div>
         <div className="privacy"><span aria-hidden="true" /> Local · saved</div>
@@ -172,6 +182,9 @@ export default function App() {
                       <small>Similarity {citation.similarityScore.toFixed(4)}</small>
                     </article>)}
                   </details>}
+                  {(message.usedMemories ?? []).length > 0 && <details className="citations memories-used"><summary>Personalized using {(message.usedMemories ?? []).length} approved {(message.usedMemories ?? []).length===1?'memory':'memories'}</summary>{(message.usedMemories ?? []).map(memory=><article key={memory.memoryId}><strong>{memory.displayLabel}</strong><span>{memory.category} · {memory.key}</span></article>)}</details>}
+                  {proposals[message.id] && <section className="memory-proposal"><strong>MuniAI suggests remembering:</strong><p>{proposals[message.id].displayLabel}: {proposals[message.id].value}</p><small>{proposals[message.id].category} · approval required</small><div><button onClick={async()=>{await memoryApi.action(proposals[message.id].id,'approve');setProposals(current=>{const next={...current};delete next[message.id];return next})}}>Approve</button><button onClick={async()=>{const proposal=proposals[message.id];const value=window.prompt('Edit proposed memory',proposal.value)?.trim();if(value){await memoryApi.edit(proposal.id,{category:proposal.category as never,key:proposal.key,value,displayLabel:proposal.displayLabel});setProposals(current=>({...current,[message.id]:{...proposal,value}}))}}}>Edit</button><button onClick={async()=>{await memoryApi.action(proposals[message.id].id,'reject');setProposals(current=>{const next={...current};delete next[message.id];return next})}}>Reject</button></div></section>}
+                  {recalled[message.id]?.length>0&&<section className="memory-proposal"><strong>Approved memories</strong>{recalled[message.id].map(memory=><p key={memory.id}>{memory.displayLabel}: {memory.value}</p>)}<button onClick={()=>setView('memory')}>Review in Memory</button></section>}
                 </>}
               </article>)}
               {isSending && <div className="thinking" role="status"><span /><span /><span /> Thinking locally</div>}

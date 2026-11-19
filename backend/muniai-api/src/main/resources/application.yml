@@ -36,6 +36,16 @@ management:
 muniai:
   chat:
     max-message-length: ${MUNIAI_CHAT_MAX_MESSAGE_LENGTH:10000}
+  memory:
+    enabled: ${MEMORY_ENABLED:true}
+    max-active: ${MEMORY_MAX_ACTIVE:100}
+    max-proposed: ${MEMORY_MAX_PROPOSED:50}
+    max-value-length: ${MEMORY_MAX_VALUE_LENGTH:1000}
+    max-prompt-items: ${MEMORY_MAX_PROMPT_ITEMS:10}
+    max-prompt-characters: ${MEMORY_MAX_PROMPT_CHARACTERS:4000}
+    usage-metadata-enabled: ${MEMORY_USAGE_METADATA_ENABLED:true}
+    suggestions-enabled: ${MEMORY_SUGGESTIONS_ENABLED:true}
+    suggestion-cooldown-minutes: ${MEMORY_SUGGESTION_COOLDOWN_MINUTES:60}
   rag:
     top-k: ${RAG_TOP_K:5}
     maximum-top-k: ${RAG_MAX_TOP_K:10}

@@ -41,7 +41,8 @@ public class ConversationController {
         ConversationApplicationService.SendMessageResult result = service.send(id, request.message(),
                 request.effectiveMode(),request.selectedDocuments(),request.topK(),request.similarityThreshold());
         return new SendMessageResponse(result.conversationId(), map(result.userMessage()), map(result.assistantMessage()),
-                result.provider(), CorrelationId.current(), result.noRelevantContext());
+                result.provider(), CorrelationId.current(), result.noRelevantContext(),mapMemory(result.memoryProposal()),
+                result.recalledMemories().stream().map(this::mapMemory).toList(),result.memoryWarning());
     }
 
     @DeleteMapping("/{id}")
@@ -66,6 +67,8 @@ public class ConversationController {
                 value.mode(),value.citations().stream().map(citation->new CitationResponse(citation.id(),
                         citation.citationIndex(),citation.documentId(),citation.originalFileName(),citation.chunkId(),
                         citation.chunkIndex(),citation.pageNumber(),citation.similarityScore(),citation.contentPreview())).toList(),
-                value.createdAt());
+                value.usedMemories().stream().map(memory->new UsedMemoryResponse(memory.memoryId(),memory.category(),
+                        memory.key(),memory.displayLabel())).toList(),value.createdAt());
     }
+    private MemorySummaryResponse mapMemory(com.muniai.memory.domain.UserMemory value){return value==null?null:new MemorySummaryResponse(value.id(),value.category(),value.key(),value.value(),value.displayLabel(),value.status());}
 }

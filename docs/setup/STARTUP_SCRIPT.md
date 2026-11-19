@@ -20,9 +20,11 @@ Open PowerShell in the repository root and run:
 powershell -ExecutionPolicy Bypass -File .\scripts\start-muniai.ps1
 ```
 
-If `MUNIAI_DB_PASSWORD` is not already present in the current environment,
-the script prompts for it securely. The password is inherited by the backend
-process but is not written to a file or printed in a log.
+If the backend needs to be started and `MUNIAI_DB_PASSWORD` is not already
+present in the current environment, the script prompts for it securely. A
+password is not requested when the backend is already healthy or when using
+`-CheckOnly`. The password is inherited by the backend process but is not
+written to a file or printed in a log.
 
 The application is available at <http://127.0.0.1:5173>. Process output is
 written below `local-data/runtime`, which is excluded from Git.

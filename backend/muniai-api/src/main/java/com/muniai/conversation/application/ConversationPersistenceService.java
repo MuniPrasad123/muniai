@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.muniai.memory.domain.UsedMemory;
+import com.muniai.memory.infrastructure.*;
 
 @Service
 public class ConversationPersistenceService {
@@ -15,12 +17,14 @@ public class ConversationPersistenceService {
     private final ConversationRepository conversations;
     private final MessageRepository messages;
     private final MessageCitationRepository citations;
+    private final MessageMemoryUsageRepository memoryUsages;
 
     public ConversationPersistenceService(ConversationRepository conversations, MessageRepository messages,
-                                          MessageCitationRepository citations) {
+                                          MessageCitationRepository citations, MessageMemoryUsageRepository memoryUsages) {
         this.conversations = conversations;
         this.messages = messages;
         this.citations = citations;
+        this.memoryUsages = memoryUsages;
     }
 
     @Transactional
@@ -74,6 +78,12 @@ public class ConversationPersistenceService {
     @Transactional
     public ConversationMessage saveAssistantMessage(UUID conversationId, String content, String model, ChatMode mode,
                                                      List<MessageCitation> citationValues) {
+        return saveAssistantMessage(conversationId,content,model,mode,citationValues,List.of());
+    }
+
+    @Transactional
+    public ConversationMessage saveAssistantMessage(UUID conversationId, String content, String model, ChatMode mode,
+                                                     List<MessageCitation> citationValues,List<UsedMemory> usedMemories) {
         ConversationEntity conversation = required(conversationId);
         Instant now = Instant.now();
         conversation.touch(now);
@@ -83,7 +93,10 @@ public class ConversationPersistenceService {
                 value.id(), saved, value.citationIndex(), value.documentId(), value.chunkId(), value.chunkIndex(),
                 value.originalFileName(), value.pageNumber(), value.similarityScore(), value.contentPreview(), now)).toList();
         citations.saveAll(savedCitations);
-        return map(saved, savedCitations.stream().map(this::map).toList());
+        List<MessageMemoryUsageEntity> savedUsage=usedMemories.stream().map(value->new MessageMemoryUsageEntity(
+                UUID.randomUUID(),saved,value,now)).toList();
+        memoryUsages.saveAll(savedUsage);
+        return map(saved, savedCitations.stream().map(this::map).toList(),usedMemories);
     }
 
     @Transactional(readOnly = true)
@@ -107,12 +120,17 @@ public class ConversationPersistenceService {
     }
 
     private ConversationMessage map(MessageEntity entity) {
-        return map(entity, citations.findByMessage_IdOrderByCitationIndex(entity.getId()).stream().map(this::map).toList());
+        List<UsedMemory> usage=memoryUsages.findByMessage_Id(entity.getId()).stream().map(value->new UsedMemory(
+                value.getMemoryId(),value.getCategory(),value.getMemoryKey(),value.getDisplayLabel())).toList();
+        return map(entity, citations.findByMessage_IdOrderByCitationIndex(entity.getId()).stream().map(this::map).toList(),usage);
     }
 
     private ConversationMessage map(MessageEntity entity, List<MessageCitation> citationValues) {
+        return map(entity,citationValues,List.of());
+    }
+    private ConversationMessage map(MessageEntity entity, List<MessageCitation> citationValues,List<UsedMemory> usedMemories) {
         return new ConversationMessage(entity.getId(), entity.getConversationId(), entity.getRole(), entity.getContent(),
-                entity.getModel(), entity.getChatMode(), citationValues, entity.getCreatedAt());
+                entity.getModel(), entity.getChatMode(), citationValues, usedMemories, entity.getCreatedAt());
     }
 
     private MessageCitation map(MessageCitationEntity value) {

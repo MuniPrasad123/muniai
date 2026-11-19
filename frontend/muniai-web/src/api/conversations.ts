@@ -11,6 +11,8 @@ export type Citation = {
   similarityScore: number
   contentPreview: string
 }
+export type UsedMemory = { memoryId:string;category:string;key:string;displayLabel:string }
+export type MemorySummary = { id:string;category:string;key:string;value:string;displayLabel:string;status:string }
 
 export type StoredMessage = {
   id: string
@@ -20,6 +22,7 @@ export type StoredMessage = {
   model: string | null
   mode: ChatMode
   citations: Citation[]
+  usedMemories?: UsedMemory[]
   createdAt: string
 }
 
@@ -38,6 +41,9 @@ export type SendMessageResponse = {
   provider: string
   correlationId: string
   noRelevantContext: boolean
+  memoryProposal: MemorySummary|null
+  recalledMemories: MemorySummary[]
+  memoryWarning: string|null
 }
 
 type ErrorBody = { code?: string; message?: string; correlationId?: string }
