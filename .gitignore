@@ -8,6 +8,7 @@ local-data/
 docs/demo/frames/
 docs/demo/rendered-frames/
 docs/demo/*.ffconcat
+docs/demo/narration.mp3
 
 # IDE and operating-system files
 .idea/

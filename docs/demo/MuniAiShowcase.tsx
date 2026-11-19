@@ -10,7 +10,7 @@ export function MuniAiShowcase() {
       <track kind="captions" src="/demo/muniai/muniai-demo.vtt" srcLang="en" label="English scene captions" default />
       Your browser does not support video. <a href="/demo/muniai/muniai-demo.mp4">Download the demonstration</a>.
     </video>
-    <p style={{fontSize:14}}>Edited 1280×720 browser capture from 19 November 2026. The document is an original synthetic project summary. The video has scene captions and no narration. Observed timings are not performance benchmarks.</p>
+    <p style={{fontSize:14}}>Edited 1280×720 browser capture from 19 November 2026. The document is an original synthetic project summary. The video has scene captions and Indian-English male narration. Observed timings are not performance benchmarks.</p>
     <p><a className="text-link" href="https://github.com/MuniPrasad123/muniai" target="_blank" rel="noreferrer">Explore the source code ↗</a>{' · '}<a className="text-link" href="/demo/muniai/muniai-demo-knowledge.md">Read the synthetic demo document ↗</a></p>
 
     <h3>What the session demonstrates</h3>

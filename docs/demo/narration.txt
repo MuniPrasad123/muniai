@@ -1,0 +1,11 @@
+Welcome to MuniAI, a private, local-first assistant.
+
+An explicit request first creates a memory proposal. It cannot affect future replies until the user approves it.
+
+A synthetic Markdown document is then uploaded, extracted, and indexed into two local chunks. Ollama creates embeddings, while Qdrant stores and searches the vectors.
+
+The semantic diagnostic returns inspectable matches. In Ask Documents mode, MuniAI retrieves evidence and generates a grounded answer with persisted citations.
+
+The evidence panel shows source passages and similarity scores. MuniAI separately discloses approved memory used for personalization.
+
+Finally, the Memory page lets users review, edit, disable, or delete saved memory, keeping conversation history, document evidence, and long-term memory separate and controlled.

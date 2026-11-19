@@ -15,7 +15,7 @@ The edited browser capture uses the original synthetic file `sample-data/muniai-
 7. the response separately discloses the approved memory that influenced it; and
 8. the Memory page shows the active value, source, creation date, last-used date, usage count, and lifecycle controls.
 
-The MP4 is an edited sequence of verified browser captures with burned-in scene labels and a WebVTT caption file. It has no narration and does not claim benchmark performance.
+The MP4 is an edited sequence of verified browser captures with burned-in scene labels, a WebVTT caption file, and Indian-English male narration generated with Microsoft `en-IN-PrabhatNeural`. It does not claim benchmark performance.
 
 ## Evidence from 19 November 2026
 
@@ -64,6 +64,7 @@ The recorded demo is static and can be viewed without running the local model st
 
 - `docs/demo/muniai-demo.mp4` — 1280×720 edited browser demonstration.
 - `docs/demo/muniai-demo.vtt` — accessible scene captions.
+- `docs/demo/narration.txt` — narration script used for the Indian-English male voice track.
 - `docs/demo/video-check.jpg` — extracted visual QA frame.
 - `docs/demo/publish-frames/` — sanitized browser evidence captures containing only synthetic demo data.
 - Raw local captures and intermediate rendered frames remain gitignored because they can contain unrelated local record names.
